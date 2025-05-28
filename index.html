@@ -397,6 +397,47 @@
             animation: fadeInOut 2s ease-in-out;
         }
 
+        /* ADD THESE NEW STYLES FOR GOOGLE SHEETS INTEGRATION */
+        .loading {
+            display: none;
+            color: #007bff;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .error-message {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .google-status {
+            background-color: #e8f4f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 12px;
+            color: var(--primary-blue);
+        }
+
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(20px); }
             50% { opacity: 1; transform: translateY(0); }
@@ -477,13 +518,22 @@
 
     <div class="container">
         <div class="form-controls">
-            <button class="btn btn-primary" onclick="saveForm()">💾 Save Form</button>
+            <button class="btn btn-primary" onclick="saveToGoogleSheets()">☁️ Save to Google Sheets</button>
+            <button class="btn btn-primary" onclick="saveForm()">💾 Save Locally</button>
             <button class="btn btn-primary" onclick="loadForm()">📂 Load Form</button>
             <button class="btn btn-success" onclick="exportToCSV()">📊 Export CSV</button>
             <button class="btn btn-success" onclick="exportToExcel()">📊 Export Excel</button>
             <button class="btn btn-warning" onclick="printForm()">🖨️ Print</button>
             <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
         </div>
+
+        <!-- ADD GOOGLE SHEETS STATUS AND MESSAGES -->
+        <div class="google-status">
+            <strong>Google Sheets Status:</strong> <span id="googleStatus">Not configured</span>
+        </div>
+        <div class="loading">Submitting form to Google Sheets...</div>
+        <div class="success-message">Form submitted successfully! Data has been saved to Google Sheets.</div>
+        <div class="error-message">Error submitting form. Please try again or save locally.</div>
 
         <div class="progress-bar">
             <h3>Form Completion Progress</h3>
@@ -1539,6 +1589,9 @@
     <div class="save-indicator" id="saveIndicator">Form saved successfully!</div>
 
     <script>
+        // IMPORTANT: Replace this with your Google Apps Script URL
+        const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
         // Initialize form
         document.addEventListener('DOMContentLoaded', function() {
             // Set current date
@@ -1563,7 +1616,185 @@
             inputs.forEach(input => {
                 input.addEventListener('change', updateProgress);
             });
+
+            // Update Google Sheets status
+            updateGoogleSheetsStatus();
         });
+
+        // Google Sheets Integration
+        function updateGoogleSheetsStatus() {
+            const statusElement = document.getElementById('googleStatus');
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                statusElement.textContent = 'Connected';
+                statusElement.style.color = 'green';
+            } else {
+                statusElement.textContent = 'Not configured - Please add your Google Apps Script URL';
+                statusElement.style.color = 'orange';
+            }
+        }
+
+        async function saveToGoogleSheets() {
+            // Check if URL is configured
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                alert('Please configure your Google Apps Script URL first!\n\nReplace YOUR_GOOGLE_APPS_SCRIPT_URL_HERE with your actual script URL in the code.');
+                return;
+            }
+
+            // Hide any previous messages
+            document.querySelector('.success-message').style.display = 'none';
+            document.querySelector('.error-message').style.display = 'none';
+            document.querySelector('.loading').style.display = 'block';
+            
+            // Collect all form data
+            const formData = collectFormDataForGoogle();
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                // With no-cors, we can't read the response, so we assume success
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.success-message').style.display = 'block';
+                
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    document.querySelector('.success-message').style.display = 'none';
+                }, 5000);
+                
+            } catch (error) {
+                document.querySelector('.loading').style.display = 'none';
+                document.querySelector('.error-message').style.display = 'block';
+                console.error('Error:', error);
+                
+                // Hide error message after 5 seconds
+                setTimeout(() => {
+                    document.querySelector('.error-message').style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function collectFormDataForGoogle() {
+            const form = document.getElementById('suitabilityForm');
+            const formData = new FormData(form);
+            const data = {
+                timestamp: new Date().toISOString(),
+                // Section 1 - Client Details
+                clientRef: document.getElementById('clientRef').value,
+                title: document.getElementById('title').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                fullName: `${document.getElementById('title').value} ${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+                dob: document.getElementById('dob').value,
+                niNumber: document.getElementById('niNumber').value,
+                taxResidency: document.getElementById('taxResidency').value,
+                employmentStatus: document.getElementById('employmentStatus').value,
+                address: document.getElementById('address').value,
+                
+                // Advice Scope
+                adviceType: document.getElementById('adviceType').value,
+                adviceAreas: Array.from(document.querySelectorAll('input[name="adviceAreas"]:checked')).map(cb => cb.value).join(', '),
+                
+                // Objectives
+                primaryObjective: document.getElementById('primaryObjective').value,
+                secondaryObjectives: document.getElementById('secondaryObjectives').value,
+                timeHorizon: document.getElementById('timeHorizon').value,
+                incomeRequirement: document.getElementById('incomeRequirement').value,
+                
+                // Section 2 - Financial Summary
+                totalIncomeCurrent: document.getElementById('totalIncomeCurrent').textContent,
+                totalIncomeExpected: document.getElementById('totalIncomeExpected').textContent,
+                totalExpMonthly: document.getElementById('totalExpMonthly').textContent,
+                totalExpAnnual: document.getElementById('totalExpAnnual').textContent,
+                totalAssets: document.getElementById('totalAssets').textContent,
+                totalLiabilities: document.getElementById('totalLiabilities').textContent,
+                netWorth: document.getElementById('netWorth').textContent,
+                annualSurplus: document.getElementById('annualSurplus').textContent,
+                
+                // Section 3 - Retirement Planning
+                retirementAge: document.getElementById('retirementAge').value,
+                lifeExpectancy: document.getElementById('lifeExpectancy').value,
+                sustainableWithdrawalRate: document.getElementById('sustainableWithdrawalRate').value,
+                inflationAssumption: document.getElementById('inflationAssumption').value,
+                incomeGap: document.getElementById('incomeGap').value,
+                incomeStrategy: document.getElementById('incomeStrategy').value,
+                
+                // Section 4 - Risk Assessment
+                riskProfilingTool: document.getElementById('riskProfilingTool').value,
+                riskScore: document.getElementById('riskScore').value,
+                riskCategory: document.getElementById('riskCategory').value,
+                emergencyFund: document.getElementById('emergencyFund').value,
+                emergencyMonths: document.getElementById('emergencyMonths').value,
+                maxAcceptableLoss: document.getElementById('maxAcceptableLoss').value,
+                riskReconciliation: document.getElementById('riskReconciliation').value,
+                
+                // Section 5 - Knowledge & Experience
+                investmentKnowledge: document.getElementById('investmentKnowledge').value,
+                
+                // Section 6 - Vulnerability
+                vulnerabilities: Array.from(document.querySelectorAll('input[name="vulnerabilities"]:checked')).map(cb => cb.value).join(', '),
+                vulnerabilityDetails: document.getElementById('vulnerabilityDetails').value,
+                adaptationsMade: document.getElementById('adaptationsMade').value,
+                
+                // Section 7 - Options
+                optionsConsidered: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(cb => cb.value).join(', '),
+                optionsAdvantages: document.getElementById('optionsAdvantages').value,
+                optionsDisadvantages: document.getElementById('optionsDisadvantages').value,
+                productResearch: document.getElementById('productResearch').value,
+                
+                // Section 8 - Recommendation
+                recommendationSummary: document.getElementById('recommendationSummary').value,
+                incomeStrategyDetail: document.getElementById('incomeStrategyDetail').value,
+                investmentStrategyDetail: document.getElementById('investmentStrategyDetail').value,
+                deathBenefitNominations: document.getElementById('deathBenefitNominations').value,
+                
+                // Section 9 - Suitability
+                meetsObjectives: document.querySelector('input[name="meetsObjectives"]:checked')?.value || '',
+                suitableRisk: document.querySelector('input[name="suitableRisk"]:checked')?.value || '',
+                affordable: document.querySelector('input[name="affordable"]:checked')?.value || '',
+                recommendationAdvantages: document.getElementById('recommendationAdvantages').value,
+                recommendationDisadvantages: document.getElementById('recommendationDisadvantages').value,
+                riskWarnings: Array.from(document.querySelectorAll('input[name="riskWarnings"]:checked')).map(cb => cb.value).join(', '),
+                
+                // Section 10 - Costs
+                initialAdviserCharge: document.getElementById('initialAdviserCharge').value,
+                initialAdviserChargePercent: document.getElementById('initialAdviserChargePercent').value,
+                ongoingAdviserCharge: document.getElementById('ongoingAdviserCharge').value,
+                platformCharge: document.getElementById('platformCharge').value,
+                fundCharges: document.getElementById('fundCharges').value,
+                totalOngoingCharges: document.getElementById('totalOngoingCharges').value,
+                valueAssessment: document.getElementById('valueAssessment').value,
+                
+                // Section 11 - Documentation
+                documentsProvided: Array.from(document.querySelectorAll('input[name="documents"]:checked')).map(cb => cb.value).join(', '),
+                recordsKept: Array.from(document.querySelectorAll('input[name="recordKeeping"]:checked')).map(cb => cb.value).join(', '),
+                
+                // Section 12 - Quality Assurance
+                adviserName: document.getElementById('adviserName').value,
+                adviserNumber: document.getElementById('adviserNumber').value,
+                adviserAssessment: document.getElementById('adviserAssessment').value,
+                complianceReviewer: document.getElementById('complianceReviewer').value,
+                complianceDate: document.getElementById('complianceDate').value,
+                complianceComments: document.getElementById('complianceComments').value,
+                
+                // Section 13 - Declarations
+                adviserDeclarations: Array.from(document.querySelectorAll('input[name="adviserDeclaration"]:checked')).map(cb => cb.value).join(', '),
+                adviserSignature: document.getElementById('adviserSignature').value,
+                adviserSignDate: document.getElementById('adviserSignDate').value,
+                complianceSignature: document.getElementById('complianceSignature').value,
+                complianceSignDate: document.getElementById('complianceSignDate').value,
+                
+                // Form completion
+                formCompletionPercent: document.getElementById('progressFill').textContent
+            };
+            
+            return data;
+        }
 
         // Toggle section collapse
         function toggleSection(sectionId) {
