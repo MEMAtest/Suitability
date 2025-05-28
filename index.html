@@ -1624,7 +1624,7 @@
         // Google Sheets Integration
         function updateGoogleSheetsStatus() {
             const statusElement = document.getElementById('googleStatus');
-            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbz3Xw96QSCijA1OEhNvTGp1GXAJLFJV46k2fyPHI2POZCuNZ5h7NpN5kLZaifuInQeA/exec') {
                 statusElement.textContent = 'Connected';
                 statusElement.style.color = 'green';
             } else {
