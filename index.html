@@ -60,6 +60,13 @@
             margin-top: 10px;
         }
 
+        .form-id-display {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
         .form-controls {
             background: white;
             padding: 20px;
@@ -110,17 +117,23 @@
             color: white;
         }
 
+        /* Fixed progress bar */
         .progress-bar {
             background: white;
-            padding: 20px;
+            padding: 15px 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 300px;
         }
 
         .progress-bar h3 {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             color: var(--primary-blue);
+            font-size: 14px;
         }
 
         .progress-track {
@@ -142,6 +155,37 @@
             color: white;
             font-weight: bold;
             font-size: 12px;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--secondary-blue);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--primary-blue);
+            transform: translateY(-5px);
         }
 
         .section {
@@ -168,6 +212,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .vulnerability-flag {
+            background-color: var(--warning-orange);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .vulnerability-flag.active {
+            display: inline-block;
         }
 
         .collapse-icon {
@@ -220,6 +277,64 @@
             outline: none;
             border-color: var(--secondary-blue);
             box-shadow: 0 0 0 2px rgba(68, 114, 196, 0.1);
+        }
+
+        input:invalid {
+            border-color: var(--danger-red);
+            background-color: #FFF5F5;
+        }
+
+        .field-error {
+            color: var(--danger-red);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        .validation-summary {
+            background-color: #FFF5F5;
+            border: 1px solid var(--danger-red);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .validation-summary.show {
+            display: block;
+        }
+
+        .validation-summary h4 {
+            color: var(--danger-red);
+            margin-bottom: 10px;
+        }
+
+        .validation-summary ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .validation-summary li {
+            color: var(--gray-dark);
+            margin-bottom: 5px;
+        }
+
+        .section-tooltip {
+            background-color: #F0F8FF;
+            border-left: 4px solid var(--secondary-blue);
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .section-tooltip strong {
+            color: var(--primary-blue);
         }
 
         textarea {
@@ -397,45 +512,34 @@
             animation: fadeInOut 2s ease-in-out;
         }
 
-        /* ADD THESE NEW STYLES FOR GOOGLE SHEETS INTEGRATION */
-        .loading {
+        .knowledge-notes {
             display: none;
-            color: #007bff;
-            text-align: center;
-            margin: 10px 0;
-            font-weight: 600;
-        }
-        
-        .success-message {
-            display: none;
-            background-color: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: 500;
-        }
-        
-        .error-message {
-            display: none;
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 10px 0;
-            text-align: center;
-            font-weight: 500;
+            margin-top: 10px;
         }
 
-        .google-status {
-            background-color: #e8f4f8;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
+        .knowledge-notes.visible {
+            display: block;
+        }
+
+        .file-upload-area {
+            border: 2px dashed var(--gray-light);
+            border-radius: 8px;
+            padding: 20px;
             text-align: center;
-            font-size: 12px;
+            background-color: #FAFBFC;
+            margin-top: 10px;
+        }
+
+        .retirement-calculation {
+            background-color: var(--light-blue);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .retirement-calculation h4 {
             color: var(--primary-blue);
+            margin-bottom: 10px;
         }
 
         @keyframes fadeInOut {
@@ -450,7 +554,10 @@
             .collapse-icon,
             .add-row-btn,
             .remove-btn,
-            .tooltip {
+            .tooltip,
+            .back-to-top,
+            .field-error,
+            .validation-summary {
                 display: none !important;
             }
 
@@ -464,9 +571,22 @@
                 display: block !important;
             }
 
+            .section-tooltip {
+                display: none !important;
+            }
+
             body {
                 background: white;
                 font-size: 12px;
+            }
+
+            input, select, textarea {
+                border: none !important;
+                background: transparent !important;
+            }
+
+            input[type="checkbox"], input[type="radio"] {
+                border: 1px solid #000 !important;
             }
         }
 
@@ -501,6 +621,11 @@
             th, td {
                 padding: 8px 5px;
             }
+
+            .progress-bar {
+                min-width: 200px;
+                right: 10px;
+            }
         }
     </style>
 </head>
@@ -511,35 +636,35 @@
             <div class="header-info">
                 <span>FCA TR24/1 Compliant</span>
                 <span id="currentDate"></span>
+                <span class="form-id-display" id="formIdDisplay">Form ID: <span id="formUniqueId"></span></span>
                 <span id="autoSaveStatus">Auto-save: Active</span>
             </div>
         </div>
     </header>
 
+    <div class="progress-bar">
+        <h3>Form Completion Progress</h3>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+    </div>
+
+    <div class="back-to-top" onclick="scrollToTop()">
+        <span style="font-size: 24px;">↑</span>
+    </div>
+
     <div class="container">
         <div class="form-controls">
-            <button class="btn btn-primary" onclick="saveToGoogleSheets()">☁️ Save to Google Sheets</button>
-            <button class="btn btn-primary" onclick="saveForm()">💾 Save Locally</button>
-            <button class="btn btn-primary" onclick="loadForm()">📂 Load Form</button>
-            <button class="btn btn-success" onclick="exportToCSV()">📊 Export CSV</button>
-            <button class="btn btn-success" onclick="exportToExcel()">📊 Export Excel</button>
+            <button class="btn btn-primary" onclick="saveForm()">💾 Save Form</button>
+            <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+            <button class="btn btn-success" onclick="generateSuitabilityReport()">📄 Generate Client Report</button>
             <button class="btn btn-warning" onclick="printForm()">🖨️ Print</button>
             <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
         </div>
 
-        <!-- ADD GOOGLE SHEETS STATUS AND MESSAGES -->
-        <div class="google-status">
-            <strong>Google Sheets Status:</strong> <span id="googleStatus">Not configured</span>
-        </div>
-        <div class="loading">Submitting form to Google Sheets...</div>
-        <div class="success-message">Form submitted successfully! Data has been saved to Google Sheets.</div>
-        <div class="error-message">Error submitting form. Please try again or save locally.</div>
-
-        <div class="progress-bar">
-            <h3>Form Completion Progress</h3>
-            <div class="progress-track">
-                <div class="progress-fill" id="progressFill">0%</div>
-            </div>
+        <div class="validation-summary" id="validationSummary">
+            <h4>⚠️ Please correct the following errors:</h4>
+            <ul id="validationList"></ul>
         </div>
 
         <form id="suitabilityForm">
@@ -553,11 +678,16 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Capture complete client information including personal details, advice scope, and financial objectives. Ensure all mandatory fields are completed for FCA compliance. Verify client identity documents match the information provided.
+                    </div>
+                    
                     <h3>Personal Information</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="clientRef" class="required">Client Reference</label>
-                            <input type="text" id="clientRef" name="clientRef" required>
+                            <input type="text" id="clientRef" name="clientRef" required pattern="[A-Za-z0-9-]+" title="Letters, numbers and hyphens only">
+                            <span class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label for="title" class="required">Title</label>
@@ -575,21 +705,35 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="firstName" class="required">First Name</label>
-                            <input type="text" id="firstName" name="firstName" required>
+                            <input type="text" id="firstName" name="firstName" required pattern="[A-Za-z\s-']+" title="Letters only">
                         </div>
                         <div class="form-group">
                             <label for="lastName" class="required">Last Name</label>
-                            <input type="text" id="lastName" name="lastName" required>
+                            <input type="text" id="lastName" name="lastName" required pattern="[A-Za-z\s-']+" title="Letters only">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="dob" class="required">Date of Birth</label>
-                            <input type="date" id="dob" name="dob" required>
+                            <input type="date" id="dob" name="dob" required max="" onchange="calculateRetirement()">
+                            <span class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label for="niNumber">NI Number</label>
-                            <input type="text" id="niNumber" name="niNumber" placeholder="AB123456C">
+                            <input type="text" id="niNumber" name="niNumber" pattern="[A-Za-z]{2}[0-9]{6}[A-Za-z]" placeholder="AB123456C" title="Format: AB123456C" style="text-transform: uppercase;">
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="client@example.com">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" pattern="[0-9+\s()-]+" placeholder="+44 20 1234 5678">
+                            <span class="field-error"></span>
                         </div>
                     </div>
                     <div class="form-row">
@@ -597,9 +741,6 @@
                             <label for="taxResidency" class="required">Tax Residency</label>
                             <select id="taxResidency" name="taxResidency" required>
                                 <option value="">Select Country</option>
-                                <option value="UK">United Kingdom</option>
-                                <option value="US">United States</option>
-                                <option value="Other">Other</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -615,8 +756,31 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="address" class="required">Address</label>
-                        <textarea id="address" name="address" rows="3" required></textarea>
+                        <label for="addressLine1" class="required">Address Line 1</label>
+                        <input type="text" id="addressLine1" name="addressLine1" required>
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addressLine2">Address Line 2</label>
+                            <input type="text" id="addressLine2" name="addressLine2">
+                        </div>
+                        <div class="form-group">
+                            <label for="city" class="required">City/Town</label>
+                            <input type="text" id="city" name="city" required>
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="county">County</label>
+                            <input type="text" id="county" name="county">
+                        </div>
+                        <div class="form-group">
+                            <label for="postcode" class="required">Postcode</label>
+                            <input type="text" id="postcode" name="postcode" required pattern="[A-Za-z]{1,2}[0-9Rr][0-9A-Za-z]? ?[0-9][A-Za-z]{2}" title="Enter a valid UK postcode" style="text-transform: uppercase;">
+                            <span class="field-error"></span>
+                        </div>
                     </div>
 
                     <h3 style="margin-top: 30px;">Advice Scope</h3>
@@ -683,7 +847,7 @@
                         </div>
                         <div class="form-group">
                             <label for="incomeRequirement">Income Requirement (£ per annum)</label>
-                            <input type="number" id="incomeRequirement" name="incomeRequirement" min="0" step="1000">
+                            <input type="number" id="incomeRequirement" name="incomeRequirement" min="0" step="1" placeholder="£20,000-60,000">
                         </div>
                     </div>
                 </div>
@@ -699,6 +863,10 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Complete a thorough financial assessment including all income sources, expenditure, assets, and liabilities. Ensure accuracy as this forms the basis for affordability assessments and recommendations. Include all pension arrangements for retirement planning.
+                    </div>
+                    
                     <h3>Income Analysis</h3>
                     <div class="table-container">
                         <table id="incomeTable">
@@ -713,38 +881,38 @@
                             <tbody>
                                 <tr>
                                     <td>Employment Income</td>
-                                    <td><input type="number" name="income_employment_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_employment_expected" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_employment_notes"></td>
+                                    <td><input type="number" name="income_employment_current" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£20,000-100,000"></td>
+                                    <td><input type="number" name="income_employment_expected" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()"></td>
+                                    <td><input type="text" name="income_employment_notes" oninput="updateProgress()"></td>
                                 </tr>
                                 <tr>
                                     <td>Self-Employment Income</td>
-                                    <td><input type="number" name="income_self_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_self_expected" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_self_current" min="0" step="1" onchange="calculateTotals()" placeholder="£15,000-80,000"></td>
+                                    <td><input type="number" name="income_self_expected" step="1" onchange="calculateTotals()"></td>
                                     <td><input type="text" name="income_self_notes"></td>
                                 </tr>
                                 <tr>
                                     <td>Pension Income</td>
-                                    <td><input type="number" name="income_pension_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_pension_expected" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_pension_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-50,000"></td>
+                                    <td><input type="number" name="income_pension_expected" step="1" onchange="calculateTotals()"></td>
                                     <td><input type="text" name="income_pension_notes"></td>
                                 </tr>
                                 <tr>
                                     <td>Investment Income</td>
-                                    <td><input type="number" name="income_investment_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_investment_expected" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_investment_current" min="0" step="1" onchange="calculateTotals()" placeholder="£1,000-30,000"></td>
+                                    <td><input type="number" name="income_investment_expected" step="1" onchange="calculateTotals()"></td>
                                     <td><input type="text" name="income_investment_notes"></td>
                                 </tr>
                                 <tr>
                                     <td>Rental Income</td>
-                                    <td><input type="number" name="income_rental_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_rental_expected" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_rental_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-25,000"></td>
+                                    <td><input type="number" name="income_rental_expected" step="1" onchange="calculateTotals()"></td>
                                     <td><input type="text" name="income_rental_notes"></td>
                                 </tr>
                                 <tr>
                                     <td>Other Income</td>
-                                    <td><input type="number" name="income_other_current" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_other_expected" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_other_current" min="0" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_other_expected" step="1" onchange="calculateTotals()"></td>
                                     <td><input type="text" name="income_other_notes"></td>
                                 </tr>
                                 <tr class="auto-calc">
@@ -771,55 +939,55 @@
                             <tbody>
                                 <tr>
                                     <td>Mortgage/Rent</td>
-                                    <td><input type="number" name="exp_mortgage_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_mortgage_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£500-3000"></td>
                                     <td class="auto-calc"><span name="exp_mortgage_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_mortgage_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Utilities</td>
-                                    <td><input type="number" name="exp_utilities_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_utilities_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£100-300"></td>
                                     <td class="auto-calc"><span name="exp_utilities_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_utilities_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Food & Groceries</td>
-                                    <td><input type="number" name="exp_food_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_food_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£200-600"></td>
                                     <td class="auto-calc"><span name="exp_food_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_food_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Transport</td>
-                                    <td><input type="number" name="exp_transport_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_transport_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£100-500"></td>
                                     <td class="auto-calc"><span name="exp_transport_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_transport_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Insurance</td>
-                                    <td><input type="number" name="exp_insurance_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_insurance_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£50-300"></td>
                                     <td class="auto-calc"><span name="exp_insurance_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_insurance_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Healthcare</td>
-                                    <td><input type="number" name="exp_healthcare_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_healthcare_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
                                     <td class="auto-calc"><span name="exp_healthcare_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_healthcare_essential" checked></td>
                                 </tr>
                                 <tr>
                                     <td>Entertainment</td>
-                                    <td><input type="number" name="exp_entertainment_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_entertainment_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
                                     <td class="auto-calc"><span name="exp_entertainment_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_entertainment_essential"></td>
                                 </tr>
                                 <tr>
                                     <td>Holidays</td>
-                                    <td><input type="number" name="exp_holidays_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_holidays_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
                                     <td class="auto-calc"><span name="exp_holidays_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_holidays_essential"></td>
                                 </tr>
                                 <tr>
                                     <td>Other</td>
-                                    <td><input type="number" name="exp_other_monthly" min="0" step="10" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td><input type="number" name="exp_other_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
                                     <td class="auto-calc"><span name="exp_other_annual">£0</span></td>
                                     <td><input type="checkbox" name="exp_other_essential"></td>
                                 </tr>
@@ -848,7 +1016,7 @@
                             <tbody id="assetsTableBody">
                                 <tr>
                                     <td>
-                                        <select name="asset_type[]">
+                                        <select name="asset_type[]" onchange="updateProgress()">
                                             <option value="Property">Property</option>
                                             <option value="Cash">Cash/Savings</option>
                                             <option value="Investment">Investments</option>
@@ -857,10 +1025,10 @@
                                             <option value="Other">Other</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" name="asset_description[]"></td>
-                                    <td><input type="number" name="asset_value[]" min="0" step="100" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="asset_description[]" placeholder="e.g., Main residence, ISA portfolio" oninput="updateProgress()"></td>
+                                    <td><input type="number" name="asset_value[]" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£150,000-500,000"></td>
                                     <td>
-                                        <select name="asset_ownership[]">
+                                        <select name="asset_ownership[]" onchange="updateProgress()">
                                             <option value="Sole">Sole</option>
                                             <option value="Joint">Joint</option>
                                             <option value="Trust">Trust</option>
@@ -902,9 +1070,9 @@
                                             <option value="Other">Other</option>
                                         </select>
                                     </td>
-                                    <td><input type="text" name="liability_description[]"></td>
-                                    <td><input type="number" name="liability_outstanding[]" min="0" step="100" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="liability_payment[]" min="0" step="10"></td>
+                                    <td><input type="text" name="liability_description[]" placeholder="e.g., Main home, Halifax"></td>
+                                    <td><input type="number" name="liability_outstanding[]" min="0" step="1" onchange="calculateTotals()" placeholder="£50,000-300,000"></td>
+                                    <td><input type="number" name="liability_payment[]" min="0" step="1" placeholder="£500-2000"></td>
                                     <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
                                 </tr>
                             </tbody>
@@ -946,7 +1114,7 @@
                             </thead>
                             <tbody id="pensionTableBody">
                                 <tr>
-                                    <td><input type="text" name="pension_provider[]"></td>
+                                    <td><input type="text" name="pension_provider[]" placeholder="e.g., Aviva, Scottish Widows"></td>
                                     <td>
                                         <select name="pension_type[]">
                                             <option value="DC">Defined Contribution</option>
@@ -955,13 +1123,37 @@
                                             <option value="State">State Pension</option>
                                         </select>
                                     </td>
-                                    <td><input type="number" name="pension_value[]" min="0" step="100"></td>
-                                    <td><input type="number" name="pension_contribution[]" min="0" step="100"></td>
+                                    <td><input type="number" name="pension_value[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£50,000-500,000"></td>
+                                    <td><input type="number" name="pension_contribution[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£3,000-40,000"></td>
                                     <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
                                 </tr>
                             </tbody>
                         </table>
                         <button type="button" class="btn btn-primary add-row-btn" onclick="addPensionRow()">+ Add Pension</button>
+                    </div>
+
+                    <div class="retirement-calculation" id="retirementCalc">
+                        <h4>Retirement Planning Calculation</h4>
+                        <div class="summary-item">
+                            <span>Current Age:</span>
+                            <strong id="currentAge">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Years to State Pension Age (67):</span>
+                            <strong id="yearsToRetirement">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Pension Value:</span>
+                            <strong id="totalPensionValue">£0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Annual Contributions:</span>
+                            <strong id="totalPensionContributions">£0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Projected Value at Retirement (4% growth):</span>
+                            <strong id="projectedPensionValue">£0</strong>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -976,25 +1168,29 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Analyze retirement income needs and sustainability. Consider life expectancy, inflation, and withdrawal rates. The income gap analysis helps identify shortfalls between required and secure income sources.
+                    </div>
+                    
                     <h3>Sustainable Income Analysis</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="retirementAge">Expected Retirement Age</label>
-                            <input type="number" id="retirementAge" name="retirementAge" min="50" max="75">
+                            <input type="number" id="retirementAge" name="retirementAge" min="50" max="75" step="1" placeholder="55-67">
                         </div>
                         <div class="form-group">
                             <label for="lifeExpectancy">Life Expectancy Planning Age</label>
-                            <input type="number" id="lifeExpectancy" name="lifeExpectancy" min="70" max="100" value="90">
+                            <input type="number" id="lifeExpectancy" name="lifeExpectancy" min="70" max="100" step="1" value="90" placeholder="85-95">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="sustainableWithdrawalRate">Sustainable Withdrawal Rate (%)</label>
-                            <input type="number" id="sustainableWithdrawalRate" name="sustainableWithdrawalRate" min="0" max="10" step="0.1" value="3.5">
+                            <input type="number" id="sustainableWithdrawalRate" name="sustainableWithdrawalRate" min="0" max="10" step="0.1" value="3.5" placeholder="3-4%">
                         </div>
                         <div class="form-group">
                             <label for="inflationAssumption">Inflation Assumption (%)</label>
-                            <input type="number" id="inflationAssumption" name="inflationAssumption" min="0" max="10" step="0.1" value="2.5">
+                            <input type="number" id="inflationAssumption" name="inflationAssumption" min="0" max="10" step="0.1" value="2.5" placeholder="2-3%">
                         </div>
                     </div>
 
@@ -1002,11 +1198,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="requiredIncome">Required Annual Income (£)</label>
-                            <input type="number" id="requiredIncome" name="requiredIncome" min="0" step="1000" onchange="calculateIncomeGap()">
+                            <input type="number" id="requiredIncome" name="requiredIncome" min="0" step="1" onchange="calculateIncomeGap()" placeholder="£20,000-60,000">
                         </div>
                         <div class="form-group">
                             <label for="secureIncome">Secure Income (State/DB Pensions) (£)</label>
-                            <input type="number" id="secureIncome" name="secureIncome" min="0" step="1000" onchange="calculateIncomeGap()">
+                            <input type="number" id="secureIncome" name="secureIncome" min="0" step="1" onchange="calculateIncomeGap()" placeholder="£8,000-30,000">
                         </div>
                     </div>
                     <div class="form-group">
@@ -1031,36 +1227,34 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Assess both attitude to risk and capacity for loss. These may differ - ensure any discrepancies are documented and reconciled. Emergency fund coverage helps determine capacity for loss.
+                    </div>
+                    
                     <h3>Attitude to Risk</h3>
                     <div class="form-group">
                         <label for="riskProfilingTool">Risk Profiling Tool Used</label>
                         <input type="text" id="riskProfilingTool" name="riskProfilingTool" placeholder="e.g., FinaMetrica, Oxford Risk">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="riskScore">Risk Score</label>
-                            <input type="number" id="riskScore" name="riskScore" min="0" max="100">
-                        </div>
-                        <div class="form-group">
-                            <label for="riskCategory" class="required">Risk Category (1-7)</label>
-                            <select id="riskCategory" name="riskCategory" required>
-                                <option value="">Select Category</option>
-                                <option value="1">1 - Very Low Risk</option>
-                                <option value="2">2 - Low Risk</option>
-                                <option value="3">3 - Low to Medium Risk</option>
-                                <option value="4">4 - Medium Risk</option>
-                                <option value="5">5 - Medium to High Risk</option>
-                                <option value="6">6 - High Risk</option>
-                                <option value="7">7 - Very High Risk</option>
-                            </select>
-                        </div>
+                    <div class="form-group">
+                        <label for="riskCategory" class="required">Risk Category (1-7)</label>
+                        <select id="riskCategory" name="riskCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="1">1 - Very Low Risk</option>
+                            <option value="2">2 - Low Risk</option>
+                            <option value="3">3 - Low to Medium Risk</option>
+                            <option value="4">4 - Medium Risk</option>
+                            <option value="5">5 - Medium to High Risk</option>
+                            <option value="6">6 - High Risk</option>
+                            <option value="7">7 - Very High Risk</option>
+                        </select>
                     </div>
 
                     <h3 style="margin-top: 30px;">Capacity for Loss</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="emergencyFund">Emergency Fund (£)</label>
-                            <input type="number" id="emergencyFund" name="emergencyFund" min="0" step="100" onchange="calculateEmergencyMonths()">
+                            <input type="number" id="emergencyFund" name="emergencyFund" min="0" step="1" onchange="calculateEmergencyMonths()" placeholder="£5,000-30,000">
                         </div>
                         <div class="form-group">
                             <label>Months of Coverage</label>
@@ -1090,16 +1284,24 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document the client's investment knowledge and experience. This helps ensure recommendations are appropriate and identifies any educational needs. Notes are required for clients with limited knowledge.
+                    </div>
+                    
                     <h3>Investment Knowledge Assessment</h3>
                     <div class="form-group">
                         <label for="investmentKnowledge" class="required">Investment Knowledge Level</label>
-                        <select id="investmentKnowledge" name="investmentKnowledge" required>
+                        <select id="investmentKnowledge" name="investmentKnowledge" required onchange="toggleKnowledgeNotes()">
                             <option value="">Select Level</option>
                             <option value="None">None - No investment knowledge</option>
                             <option value="Basic">Basic - Understands simple products</option>
                             <option value="Intermediate">Intermediate - Good understanding</option>
                             <option value="Advanced">Advanced - Sophisticated investor</option>
                         </select>
+                    </div>
+                    <div class="form-group knowledge-notes" id="knowledgeNotes">
+                        <label for="knowledgeExplanation">Knowledge Level Explanation</label>
+                        <textarea id="knowledgeExplanation" name="knowledgeExplanation" rows="3" placeholder="Provide details about the client's knowledge level and any educational needs..."></textarea>
                     </div>
 
                     <h3 style="margin-top: 30px;">Investment Experience</h3>
@@ -1126,7 +1328,7 @@
                                             <option value="Alternatives">Alternative Investments</option>
                                         </select>
                                     </td>
-                                    <td><input type="number" name="experience_years[]" min="0" max="50"></td>
+                                    <td><input type="number" name="experience_years[]" min="0" max="50" step="1"></td>
                                     <td>
                                         <select name="experience_current[]">
                                             <option value="Yes">Yes</option>
@@ -1148,30 +1350,35 @@
                     <h2>
                         <span class="status-indicator status-incomplete" id="status6"></span>
                         6. Vulnerability Assessment
+                        <span class="vulnerability-flag" id="vulnerabilityFlag">⚠️ Vulnerable</span>
                     </h2>
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Identify any client vulnerabilities per FCA guidelines. If vulnerabilities are identified, document adaptations made to the advice process. The flag in the header will activate automatically when vulnerabilities are selected.
+                    </div>
+                    
                     <h3>Vulnerability Indicators</h3>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
-                            <input type="checkbox" id="vuln_health" name="vulnerabilities" value="Health">
+                            <input type="checkbox" id="vuln_health" name="vulnerabilities" value="Health" onchange="checkVulnerabilities()">
                             <label for="vuln_health">Health - Physical or mental health conditions</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="vuln_life" name="vulnerabilities" value="Life Events">
+                            <input type="checkbox" id="vuln_life" name="vulnerabilities" value="Life Events" onchange="checkVulnerabilities()">
                             <label for="vuln_life">Life Events - Bereavement, divorce, job loss</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="vuln_resilience" name="vulnerabilities" value="Resilience">
+                            <input type="checkbox" id="vuln_resilience" name="vulnerabilities" value="Resilience" onchange="checkVulnerabilities()">
                             <label for="vuln_resilience">Resilience - Low financial resilience</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="vuln_capability" name="vulnerabilities" value="Capability">
+                            <input type="checkbox" id="vuln_capability" name="vulnerabilities" value="Capability" onchange="checkVulnerabilities()">
                             <label for="vuln_capability">Capability - Low financial capability or confidence</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="vuln_none" name="vulnerabilities" value="None">
+                            <input type="checkbox" id="vuln_none" name="vulnerabilities" value="None" onchange="checkVulnerabilities()">
                             <label for="vuln_none">None identified</label>
                         </div>
                     </div>
@@ -1198,6 +1405,10 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document all options considered for the client, including advantages and disadvantages of each. This demonstrates a thorough advice process and helps justify your final recommendation.
+                    </div>
+                    
                     <h3>Options Assessment</h3>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
@@ -1254,7 +1465,13 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
-                    <h3>Recommendation Summary</h3>
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Provide clear, specific recommendations based on all previous sections. Use the auto-generate feature as a starting point, then customize based on your professional judgment and the client's unique circumstances.
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="generateRecommendation()">🤖 Generate Recommendation Based on Data</button>
+                    
+                    <h3 style="margin-top: 20px;">Recommendation Summary</h3>
                     <div class="form-group">
                         <label for="recommendationSummary" class="required">Recommendation Summary</label>
                         <textarea id="recommendationSummary" name="recommendationSummary" rows="5" required placeholder="Provide a clear summary of your recommendation..."></textarea>
@@ -1290,6 +1507,10 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Confirm that your recommendation meets all suitability criteria. Document how it aligns with objectives, risk profile, and affordability. Ensure all risk warnings have been communicated to the client.
+                    </div>
+                    
                     <h3>Suitability Criteria</h3>
                     <div class="form-group">
                         <label>Meets client objectives?</label>
@@ -1348,26 +1569,27 @@
                     </div>
 
                     <h3 style="margin-top: 30px;">Risk Warnings</h3>
+                    <p style="font-style: italic; margin-bottom: 15px;">Please confirm that you have communicated the following risk warnings to the client:</p>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
                             <input type="checkbox" id="risk_capital" name="riskWarnings" value="Capital at Risk">
-                            <label for="risk_capital">Capital is at risk and can fall as well as rise</label>
+                            <label for="risk_capital">I have warned the client that capital is at risk and can fall as well as rise</label>
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="risk_inflation" name="riskWarnings" value="Inflation Risk">
-                            <label for="risk_inflation">Inflation may erode the real value of investments</label>
+                            <label for="risk_inflation">I have warned the client that inflation may erode the real value of investments</label>
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="risk_liquidity" name="riskWarnings" value="Liquidity Risk">
-                            <label for="risk_liquidity">Some investments may be difficult to sell quickly</label>
+                            <label for="risk_liquidity">I have warned the client that some investments may be difficult to sell quickly</label>
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="risk_concentration" name="riskWarnings" value="Concentration Risk">
-                            <label for="risk_concentration">Lack of diversification increases risk</label>
+                            <label for="risk_concentration">I have warned the client that lack of diversification increases risk</label>
                         </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="risk_tax" name="riskWarnings" value="Tax Risk">
-                            <label for="risk_tax">Tax rules can change and depend on circumstances</label>
+                            <label for="risk_tax">I have warned the client that tax rules can change and depend on circumstances</label>
                         </div>
                     </div>
                 </div>
@@ -1383,21 +1605,25 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Full transparency on all costs is required. Include initial and ongoing charges for advice, platform, and investments. The total ongoing charge calculation helps assess value for money.
+                    </div>
+                    
                     <h3>Adviser Charges</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="initialAdviserCharge">Initial Adviser Charge (£)</label>
-                            <input type="number" id="initialAdviserCharge" name="initialAdviserCharge" min="0" step="100" onchange="calculateTotalCharges()">
+                            <input type="number" id="initialAdviserCharge" name="initialAdviserCharge" min="0" step="1" onchange="calculateTotalCharges()" placeholder="£1,000-5,000">
                         </div>
                         <div class="form-group">
                             <label for="initialAdviserChargePercent">Initial Adviser Charge (%)</label>
-                            <input type="number" id="initialAdviserChargePercent" name="initialAdviserChargePercent" min="0" max="10" step="0.1" onchange="calculateTotalCharges()">
+                            <input type="number" id="initialAdviserChargePercent" name="initialAdviserChargePercent" min="0" max="10" step="0.1" onchange="calculateTotalCharges()" placeholder="1-3%">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="ongoingAdviserCharge">Ongoing Adviser Charge (% p.a.)</label>
-                            <input type="number" id="ongoingAdviserCharge" name="ongoingAdviserCharge" min="0" max="5" step="0.1" onchange="calculateTotalCharges()">
+                            <input type="number" id="ongoingAdviserCharge" name="ongoingAdviserCharge" min="0" max="5" step="0.1" onchange="calculateTotalCharges()" placeholder="0.5-1%">
                         </div>
                         <div class="form-group">
                             <label for="adviserChargeMethod">Payment Method</label>
@@ -1413,11 +1639,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="platformCharge">Platform Charge (% p.a.)</label>
-                            <input type="number" id="platformCharge" name="platformCharge" min="0" max="2" step="0.01" onchange="calculateTotalCharges()">
+                            <input type="number" id="platformCharge" name="platformCharge" min="0" max="2" step="0.01" onchange="calculateTotalCharges()" placeholder="0.15-0.45%">
                         </div>
                         <div class="form-group">
                             <label for="fundCharges">Fund Charges (% p.a.)</label>
-                            <input type="number" id="fundCharges" name="fundCharges" min="0" max="3" step="0.01" onchange="calculateTotalCharges()">
+                            <input type="number" id="fundCharges" name="fundCharges" min="0" max="3" step="0.01" onchange="calculateTotalCharges()" placeholder="0.5-1.5%">
                         </div>
                     </div>
                     <div class="form-group">
@@ -1443,6 +1669,10 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Confirm all required documents have been provided to the client and properly stored. Reference the storage location for compliance records. This ensures FCA documentation requirements are met.
+                    </div>
+                    
                     <h3>Documents Provided</h3>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
@@ -1469,6 +1699,17 @@
                             <input type="checkbox" id="doc_privacy" name="documents" value="Privacy">
                             <label for="doc_privacy">Privacy Notice</label>
                         </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Document Storage Reference</h3>
+                    <div class="form-group">
+                        <label for="storageLocation">Document Storage Location</label>
+                        <input type="text" id="storageLocation" name="storageLocation" placeholder="e.g., SharePoint/ClientFiles/2024/ClientName/">
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentReferences">Document References</label>
+                        <textarea id="documentReferences" name="documentReferences" rows="3" placeholder="List document names and their locations..."></textarea>
                     </div>
 
                     <h3 style="margin-top: 30px;">Record Keeping</h3>
@@ -1503,14 +1744,29 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document the adviser's assessment and any compliance review. This provides an audit trail and ensures proper oversight of the advice process.
+                    </div>
+                    
                     <h3>Adviser Assessment</h3>
                     <div class="form-group">
                         <label for="adviserName" class="required">Adviser Name</label>
-                        <input type="text" id="adviserName" name="adviserName" required>
+                        <select id="adviserName" name="adviserName" required>
+                            <option value="">Select Adviser</option>
+                            <option value="John Page">John Page</option>
+                            <option value="Robin Mackrill">Robin Mackrill</option>
+                        </select>
+                        <span class="field-error"></span>
                     </div>
                     <div class="form-group">
-                        <label for="adviserNumber" class="required">FCA Reference Number</label>
-                        <input type="text" id="adviserNumber" name="adviserNumber" required>
+                        <label for="adviserNumber" class="required">FCA Reference Number
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-content">Enter the adviser's 7-digit FCA individual reference number (e.g., 1234567)</span>
+                            </span>
+                        </label>
+                        <input type="text" id="adviserNumber" name="adviserNumber" required pattern="[0-9]{7}" title="Enter a 7-digit FCA reference number" placeholder="1234567" maxlength="7">
+                        <span class="field-error"></span>
                     </div>
                     <div class="form-group">
                         <label for="adviserAssessment">Adviser's Assessment</label>
@@ -1520,11 +1776,13 @@
                     <h3 style="margin-top: 30px;">Compliance Assessment</h3>
                     <div class="form-group">
                         <label for="complianceReviewer">Compliance Reviewer Name</label>
-                        <input type="text" id="complianceReviewer" name="complianceReviewer">
+                        <input type="text" id="complianceReviewer" name="complianceReviewer" pattern="[A-Za-z\s-']+" title="Letters only">
+                        <span class="field-error"></span>
                     </div>
                     <div class="form-group">
                         <label for="complianceDate">Review Date</label>
                         <input type="date" id="complianceDate" name="complianceDate">
+                        <span class="field-error"></span>
                     </div>
                     <div class="form-group">
                         <label for="complianceComments">Compliance Comments</label>
@@ -1543,6 +1801,10 @@
                     <span class="collapse-icon">▼</span>
                 </div>
                 <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Final confirmations that the advice is suitable and compliant. All declarations must be checked and signed/dated. Compliance approval may be required depending on firm procedures.
+                    </div>
+                    
                     <h3>Adviser Declaration</h3>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
@@ -1563,10 +1825,12 @@
                         <div class="form-group">
                             <label for="adviserSignature" class="required">Adviser Signature</label>
                             <input type="text" id="adviserSignature" name="adviserSignature" required placeholder="Type full name">
+                            <span class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label for="adviserSignDate" class="required">Date</label>
                             <input type="date" id="adviserSignDate" name="adviserSignDate" required>
+                            <span class="field-error"></span>
                         </div>
                     </div>
 
@@ -1575,11 +1839,24 @@
                         <div class="form-group">
                             <label for="complianceSignature">Compliance Signature</label>
                             <input type="text" id="complianceSignature" name="complianceSignature" placeholder="Type full name">
+                            <span class="field-error"></span>
                         </div>
                         <div class="form-group">
                             <label for="complianceSignDate">Date</label>
                             <input type="date" id="complianceSignDate" name="complianceSignDate">
+                            <span class="field-error"></span>
                         </div>
+                    </div>
+
+                    <div class="summary-box" style="margin-top: 30px;">
+                        <h3>✅ Form Completion</h3>
+                        <p>Once all sections are complete and declarations signed, you can:</p>
+                        <ul style="margin-left: 20px;">
+                            <li>Save the form using the Save button</li>
+                            <li>Export to Excel for your records</li>
+                            <li>Print a copy for the client file</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Next Steps:</strong> Review all information for accuracy before submitting to compliance for approval.</p>
                     </div>
                 </div>
             </div>
@@ -1589,17 +1866,62 @@
     <div class="save-indicator" id="saveIndicator">Form saved successfully!</div>
 
     <script>
-        // IMPORTANT: Replace this with your Google Apps Script URL
-        https://script.google.com/macros/s/AKfycbz3Xw96QSCijA1OEhNvTGp1GXAJLFJV46k2fyPHI2POZCuNZ5h7NpN5kLZaifuInQeA/exec;
+        // Country list for tax residency
+        const countries = [
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", 
+            "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", 
+            "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", 
+            "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", 
+            "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", 
+            "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", 
+            "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Fiji", 
+            "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", 
+            "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", 
+            "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", 
+            "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", 
+            "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Madagascar", "Malawi", "Malaysia", 
+            "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", 
+            "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", 
+            "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "Norway", 
+            "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", 
+            "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", 
+            "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", 
+            "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", 
+            "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", 
+            "Sudan", "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", 
+            "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", 
+            "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", 
+            "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        ];
 
         // Initialize form
         document.addEventListener('DOMContentLoaded', function() {
+            // Generate unique form ID
+            generateFormId();
+
             // Set current date
             document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-GB', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
+            });
+
+            // Set max date for DOB (must be 18+ years old)
+            const today = new Date();
+            const maxDOB = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+            document.getElementById('dob').max = maxDOB.toISOString().split('T')[0];
+
+            // Populate country dropdown
+            const taxResidencySelect = document.getElementById('taxResidency');
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                if (country === 'United Kingdom') {
+                    option.selected = true;
+                }
+                taxResidencySelect.appendChild(option);
             });
 
             // Load any saved data
@@ -1615,185 +1937,175 @@
             const inputs = document.querySelectorAll('input, select, textarea');
             inputs.forEach(input => {
                 input.addEventListener('change', updateProgress);
+                input.addEventListener('input', updateProgress); // Also update on typing
+                input.addEventListener('blur', function() {
+                    validateField(this);
+                });
             });
 
-            // Update Google Sheets status
-            updateGoogleSheetsStatus();
-        });
+            // Enhanced number field validation - prevent any non-numeric input
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                // Prevent non-numeric keypress
+                input.addEventListener('keypress', function(e) {
+                    const char = String.fromCharCode(e.which);
+                    // Allow: backspace, delete, tab, escape, enter, decimal point, minus
+                    const allowedKeys = [8, 9, 27, 13, 46, 45];
+                    const allowedChars = /[0-9.-]/;
+                    
+                    if (allowedKeys.indexOf(e.keyCode) !== -1 ||
+                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                        (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+                        (e.keyCode === 67 && (e.ctrlKey === true || e.metaKey === true)) ||
+                        (e.keyCode === 86 && (e.ctrlKey === true || e.metaKey === true)) ||
+                        (e.keyCode === 88 && (e.ctrlKey === true || e.metaKey === true))) {
+                        return;
+                    }
+                    
+                    // Check if character is allowed
+                    if (!allowedChars.test(char)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Prevent multiple decimal points
+                    if (char === '.' && this.value.includes('.')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Prevent multiple minus signs or minus not at start
+                    if (char === '-' && (this.value.includes('-') || this.selectionStart !== 0)) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
 
-        // Google Sheets Integration
-        function updateGoogleSheetsStatus() {
-            const statusElement = document.getElementById('googleStatus');
-            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbz3Xw96QSCijA1OEhNvTGp1GXAJLFJV46k2fyPHI2POZCuNZ5h7NpN5kLZaifuInQeA/exec') {
-                statusElement.textContent = 'Connected';
-                statusElement.style.color = 'green';
-            } else {
-                statusElement.textContent = 'Not configured - Please add your Google Apps Script URL';
-                statusElement.style.color = 'orange';
-            }
-        }
-
-        async function saveToGoogleSheets() {
-            // Check if URL is configured
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbz3Xw96QSCijA1OEhNvTGp1GXAJLFJV46k2fyPHI2POZCuNZ5h7NpN5kLZaifuInQeA/exec') {
-                alert('Please configure your Google Apps Script URL first!\n\nReplace https://script.google.com/macros/s/AKfycbz3Xw96QSCijA1OEhNvTGp1GXAJLFJV46k2fyPHI2POZCuNZ5h7NpN5kLZaifuInQeA/exec with your actual script URL in the code.');
-                return;
-            }
-
-            // Hide any previous messages
-            document.querySelector('.success-message').style.display = 'none';
-            document.querySelector('.error-message').style.display = 'none';
-            document.querySelector('.loading').style.display = 'block';
-            
-            // Collect all form data
-            const formData = collectFormDataForGoogle();
-            
-            try {
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
+                // Prevent paste of non-numeric content
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const paste = (e.clipboardData || window.clipboardData).getData('text');
+                    const numericValue = paste.replace(/[^0-9.-]/g, '');
+                    
+                    if (numericValue && !isNaN(numericValue)) {
+                        this.value = numericValue;
+                        this.dispatchEvent(new Event('change'));
+                    }
                 });
                 
-                // With no-cors, we can't read the response, so we assume success
-                document.querySelector('.loading').style.display = 'none';
-                document.querySelector('.success-message').style.display = 'block';
+                // Clean input on blur
+                input.addEventListener('blur', function() {
+                    if (this.value && isNaN(this.value)) {
+                        this.value = '';
+                    }
+                });
+            });
+
+            // Set up scroll listener for back to top button
+            window.addEventListener('scroll', function() {
+                const backToTop = document.querySelector('.back-to-top');
+                if (window.pageYOffset > 300) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            });
+        });
+
+        // Field validation
+        function validateField(field) {
+            const errorSpan = field.parentElement.querySelector('.field-error') || createErrorSpan(field);
+            
+            if (!field.validity.valid) {
+                let errorMessage = '';
                 
-                // Hide success message after 5 seconds
-                setTimeout(() => {
-                    document.querySelector('.success-message').style.display = 'none';
-                }, 5000);
+                if (field.validity.valueMissing) {
+                    errorMessage = 'This field is required';
+                } else if (field.validity.typeMismatch) {
+                    if (field.type === 'email') {
+                        errorMessage = 'Please enter a valid email address';
+                    } else {
+                        errorMessage = 'Please enter a valid value';
+                    }
+                } else if (field.validity.patternMismatch) {
+                    if (field.name === 'niNumber') {
+                        errorMessage = 'Format: AB123456C';
+                    } else if (field.name === 'postcode') {
+                        errorMessage = 'Enter a valid UK postcode (e.g., SW1A 1AA)';
+                    } else if (field.name === 'adviserNumber') {
+                        errorMessage = 'Enter a 7-digit FCA reference number';
+                    } else if (field.type === 'tel') {
+                        errorMessage = 'Please enter a valid phone number';
+                    } else {
+                        errorMessage = 'Please match the required format';
+                    }
+                } else if (field.validity.rangeUnderflow) {
+                    errorMessage = `Value must be at least ${field.min}`;
+                } else if (field.validity.rangeOverflow) {
+                    errorMessage = `Value must be no more than ${field.max}`;
+                }
                 
-            } catch (error) {
-                document.querySelector('.loading').style.display = 'none';
-                document.querySelector('.error-message').style.display = 'block';
-                console.error('Error:', error);
+                errorSpan.textContent = errorMessage;
+                errorSpan.classList.add('show');
+                field.classList.add('error');
+            } else {
+                errorSpan.classList.remove('show');
+                field.classList.remove('error');
+            }
+            
+            updateValidationSummary();
+        }
+
+        function createErrorSpan(field) {
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'field-error';
+            field.parentElement.appendChild(errorSpan);
+            return errorSpan;
+        }
+
+        function updateValidationSummary() {
+            const invalidFields = document.querySelectorAll('input:invalid, select:invalid, textarea:invalid');
+            const validationSummary = document.getElementById('validationSummary');
+            const validationList = document.getElementById('validationList');
+            
+            if (invalidFields.length > 0) {
+                validationList.innerHTML = '';
+                const sections = {};
                 
-                // Hide error message after 5 seconds
-                setTimeout(() => {
-                    document.querySelector('.error-message').style.display = 'none';
-                }, 5000);
+                invalidFields.forEach(field => {
+                    const section = field.closest('.section');
+                    const sectionTitle = section.querySelector('h2').textContent.trim();
+                    const fieldLabel = field.closest('.form-group')?.querySelector('label')?.textContent.replace(/[*?]/g, '').trim() || field.name;
+                    
+                    if (!sections[sectionTitle]) {
+                        sections[sectionTitle] = [];
+                    }
+                    sections[sectionTitle].push(fieldLabel);
+                });
+                
+                Object.entries(sections).forEach(([section, fields]) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${section}:</strong> ${fields.join(', ')}`;
+                    validationList.appendChild(li);
+                });
+                
+                validationSummary.classList.add('show');
+            } else {
+                validationSummary.classList.remove('show');
             }
         }
 
-        function collectFormDataForGoogle() {
-            const form = document.getElementById('suitabilityForm');
-            const formData = new FormData(form);
-            const data = {
-                timestamp: new Date().toISOString(),
-                // Section 1 - Client Details
-                clientRef: document.getElementById('clientRef').value,
-                title: document.getElementById('title').value,
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                fullName: `${document.getElementById('title').value} ${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
-                dob: document.getElementById('dob').value,
-                niNumber: document.getElementById('niNumber').value,
-                taxResidency: document.getElementById('taxResidency').value,
-                employmentStatus: document.getElementById('employmentStatus').value,
-                address: document.getElementById('address').value,
-                
-                // Advice Scope
-                adviceType: document.getElementById('adviceType').value,
-                adviceAreas: Array.from(document.querySelectorAll('input[name="adviceAreas"]:checked')).map(cb => cb.value).join(', '),
-                
-                // Objectives
-                primaryObjective: document.getElementById('primaryObjective').value,
-                secondaryObjectives: document.getElementById('secondaryObjectives').value,
-                timeHorizon: document.getElementById('timeHorizon').value,
-                incomeRequirement: document.getElementById('incomeRequirement').value,
-                
-                // Section 2 - Financial Summary
-                totalIncomeCurrent: document.getElementById('totalIncomeCurrent').textContent,
-                totalIncomeExpected: document.getElementById('totalIncomeExpected').textContent,
-                totalExpMonthly: document.getElementById('totalExpMonthly').textContent,
-                totalExpAnnual: document.getElementById('totalExpAnnual').textContent,
-                totalAssets: document.getElementById('totalAssets').textContent,
-                totalLiabilities: document.getElementById('totalLiabilities').textContent,
-                netWorth: document.getElementById('netWorth').textContent,
-                annualSurplus: document.getElementById('annualSurplus').textContent,
-                
-                // Section 3 - Retirement Planning
-                retirementAge: document.getElementById('retirementAge').value,
-                lifeExpectancy: document.getElementById('lifeExpectancy').value,
-                sustainableWithdrawalRate: document.getElementById('sustainableWithdrawalRate').value,
-                inflationAssumption: document.getElementById('inflationAssumption').value,
-                incomeGap: document.getElementById('incomeGap').value,
-                incomeStrategy: document.getElementById('incomeStrategy').value,
-                
-                // Section 4 - Risk Assessment
-                riskProfilingTool: document.getElementById('riskProfilingTool').value,
-                riskScore: document.getElementById('riskScore').value,
-                riskCategory: document.getElementById('riskCategory').value,
-                emergencyFund: document.getElementById('emergencyFund').value,
-                emergencyMonths: document.getElementById('emergencyMonths').value,
-                maxAcceptableLoss: document.getElementById('maxAcceptableLoss').value,
-                riskReconciliation: document.getElementById('riskReconciliation').value,
-                
-                // Section 5 - Knowledge & Experience
-                investmentKnowledge: document.getElementById('investmentKnowledge').value,
-                
-                // Section 6 - Vulnerability
-                vulnerabilities: Array.from(document.querySelectorAll('input[name="vulnerabilities"]:checked')).map(cb => cb.value).join(', '),
-                vulnerabilityDetails: document.getElementById('vulnerabilityDetails').value,
-                adaptationsMade: document.getElementById('adaptationsMade').value,
-                
-                // Section 7 - Options
-                optionsConsidered: Array.from(document.querySelectorAll('input[name="options"]:checked')).map(cb => cb.value).join(', '),
-                optionsAdvantages: document.getElementById('optionsAdvantages').value,
-                optionsDisadvantages: document.getElementById('optionsDisadvantages').value,
-                productResearch: document.getElementById('productResearch').value,
-                
-                // Section 8 - Recommendation
-                recommendationSummary: document.getElementById('recommendationSummary').value,
-                incomeStrategyDetail: document.getElementById('incomeStrategyDetail').value,
-                investmentStrategyDetail: document.getElementById('investmentStrategyDetail').value,
-                deathBenefitNominations: document.getElementById('deathBenefitNominations').value,
-                
-                // Section 9 - Suitability
-                meetsObjectives: document.querySelector('input[name="meetsObjectives"]:checked')?.value || '',
-                suitableRisk: document.querySelector('input[name="suitableRisk"]:checked')?.value || '',
-                affordable: document.querySelector('input[name="affordable"]:checked')?.value || '',
-                recommendationAdvantages: document.getElementById('recommendationAdvantages').value,
-                recommendationDisadvantages: document.getElementById('recommendationDisadvantages').value,
-                riskWarnings: Array.from(document.querySelectorAll('input[name="riskWarnings"]:checked')).map(cb => cb.value).join(', '),
-                
-                // Section 10 - Costs
-                initialAdviserCharge: document.getElementById('initialAdviserCharge').value,
-                initialAdviserChargePercent: document.getElementById('initialAdviserChargePercent').value,
-                ongoingAdviserCharge: document.getElementById('ongoingAdviserCharge').value,
-                platformCharge: document.getElementById('platformCharge').value,
-                fundCharges: document.getElementById('fundCharges').value,
-                totalOngoingCharges: document.getElementById('totalOngoingCharges').value,
-                valueAssessment: document.getElementById('valueAssessment').value,
-                
-                // Section 11 - Documentation
-                documentsProvided: Array.from(document.querySelectorAll('input[name="documents"]:checked')).map(cb => cb.value).join(', '),
-                recordsKept: Array.from(document.querySelectorAll('input[name="recordKeeping"]:checked')).map(cb => cb.value).join(', '),
-                
-                // Section 12 - Quality Assurance
-                adviserName: document.getElementById('adviserName').value,
-                adviserNumber: document.getElementById('adviserNumber').value,
-                adviserAssessment: document.getElementById('adviserAssessment').value,
-                complianceReviewer: document.getElementById('complianceReviewer').value,
-                complianceDate: document.getElementById('complianceDate').value,
-                complianceComments: document.getElementById('complianceComments').value,
-                
-                // Section 13 - Declarations
-                adviserDeclarations: Array.from(document.querySelectorAll('input[name="adviserDeclaration"]:checked')).map(cb => cb.value).join(', '),
-                adviserSignature: document.getElementById('adviserSignature').value,
-                adviserSignDate: document.getElementById('adviserSignDate').value,
-                complianceSignature: document.getElementById('complianceSignature').value,
-                complianceSignDate: document.getElementById('complianceSignDate').value,
-                
-                // Form completion
-                formCompletionPercent: document.getElementById('progressFill').textContent
-            };
-            
-            return data;
+        // Generate unique form ID
+        function generateFormId() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 10000);
+            const formId = `IFA-${timestamp}-${random}`;
+            document.getElementById('formUniqueId').textContent = formId;
+            return formId;
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Toggle section collapse
@@ -1802,13 +2114,184 @@
             section.classList.toggle('collapsed');
         }
 
+        // Toggle knowledge notes visibility
+        function toggleKnowledgeNotes() {
+            const knowledge = document.getElementById('investmentKnowledge').value;
+            const notes = document.getElementById('knowledgeNotes');
+            
+            if (knowledge && knowledge !== 'Advanced') {
+                notes.classList.add('visible');
+            } else {
+                notes.classList.remove('visible');
+            }
+        }
+
+        // Check vulnerabilities and show flag
+        function checkVulnerabilities() {
+            const vulnerabilities = document.querySelectorAll('input[name="vulnerabilities"]:checked');
+            const flag = document.getElementById('vulnerabilityFlag');
+            const noneCheckbox = document.getElementById('vuln_none');
+            
+            let hasVulnerability = false;
+            vulnerabilities.forEach(vuln => {
+                if (vuln.value !== 'None') {
+                    hasVulnerability = true;
+                }
+            });
+
+            if (hasVulnerability) {
+                flag.classList.add('active');
+                noneCheckbox.checked = false;
+            } else {
+                flag.classList.remove('active');
+            }
+
+            // If "None" is selected, uncheck all others
+            if (noneCheckbox.checked) {
+                document.querySelectorAll('input[name="vulnerabilities"]').forEach(checkbox => {
+                    if (checkbox.value !== 'None') {
+                        checkbox.checked = false;
+                    }
+                });
+                flag.classList.remove('active');
+            }
+        }
+
+        // Calculate retirement projections
+        function calculateRetirement() {
+            const dobInput = document.getElementById('dob').value;
+            if (!dobInput) return;
+
+            const dob = new Date(dobInput);
+            const today = new Date();
+            const age = Math.floor((today - dob) / (365.25 * 24 * 60 * 60 * 1000));
+            const yearsToRetirement = Math.max(0, 67 - age);
+
+            document.getElementById('currentAge').textContent = age + ' years';
+            document.getElementById('yearsToRetirement').textContent = yearsToRetirement + ' years';
+
+            // Calculate total pension values
+            let totalValue = 0;
+            let totalContributions = 0;
+
+            document.querySelectorAll('[name="pension_value[]"]').forEach(input => {
+                totalValue += parseFloat(input.value) || 0;
+            });
+
+            document.querySelectorAll('[name="pension_contribution[]"]').forEach(input => {
+                totalContributions += parseFloat(input.value) || 0;
+            });
+
+            document.getElementById('totalPensionValue').textContent = `£${totalValue.toLocaleString()}`;
+            document.getElementById('totalPensionContributions').textContent = `£${totalContributions.toLocaleString()}`;
+
+            // Project future value (4% growth assumption)
+            if (yearsToRetirement > 0) {
+                const growthRate = 0.04;
+                const futureValue = totalValue * Math.pow(1 + growthRate, yearsToRetirement) +
+                    totalContributions * ((Math.pow(1 + growthRate, yearsToRetirement) - 1) / growthRate);
+                document.getElementById('projectedPensionValue').textContent = `£${Math.round(futureValue).toLocaleString()}`;
+            } else {
+                document.getElementById('projectedPensionValue').textContent = `£${totalValue.toLocaleString()}`;
+            }
+        }
+
+        // Generate recommendation based on data
+        function generateRecommendation() {
+            // Collect relevant data
+            const objectives = document.getElementById('primaryObjective').value;
+            const timeHorizon = document.getElementById('timeHorizon').value;
+            const riskCategory = document.getElementById('riskCategory').value;
+            const incomeRequirement = parseFloat(document.getElementById('incomeRequirement').value) || 0;
+            const netWorth = document.getElementById('netWorth').textContent;
+            const employmentStatus = document.getElementById('employmentStatus').value;
+            const age = parseInt(document.getElementById('currentAge').textContent) || 0;
+            
+            // Build recommendation
+            let recommendation = `Based on the comprehensive assessment of the client's circumstances:\n\n`;
+            
+            // Primary objective alignment
+            if (objectives) {
+                recommendation += `PRIMARY OBJECTIVE: ${objectives}\n\n`;
+            }
+            
+            // Risk-based approach
+            if (riskCategory) {
+                const riskMap = {
+                    '1': 'very cautious approach with capital preservation focus',
+                    '2': 'cautious approach with limited volatility',
+                    '3': 'balanced approach with moderate growth potential',
+                    '4': 'balanced growth approach',
+                    '5': 'growth-focused approach with higher volatility acceptance',
+                    '6': 'aggressive growth approach',
+                    '7': 'very aggressive growth approach with maximum growth potential'
+                };
+                recommendation += `RISK PROFILE: The client has been assessed as category ${riskCategory}, indicating a ${riskMap[riskCategory] || 'balanced approach'}.\n\n`;
+            }
+            
+            // Income strategy
+            if (incomeRequirement > 0) {
+                recommendation += `INCOME STRATEGY: The client requires £${incomeRequirement.toLocaleString()} per annum. `;
+                
+                const incomeGap = document.getElementById('incomeGap').value;
+                if (incomeGap && incomeGap !== '£0') {
+                    recommendation += `With an income gap of ${incomeGap}, a drawdown strategy supplemented by investment income is recommended.\n\n`;
+                } else {
+                    recommendation += `Current secure income meets requirements.\n\n`;
+                }
+            }
+            
+            // Investment allocation based on risk
+            if (riskCategory) {
+                const allocations = {
+                    '1': { equity: 20, bonds: 60, cash: 20 },
+                    '2': { equity: 30, bonds: 55, cash: 15 },
+                    '3': { equity: 40, bonds: 45, cash: 15 },
+                    '4': { equity: 50, bonds: 40, cash: 10 },
+                    '5': { equity: 60, bonds: 30, cash: 10 },
+                    '6': { equity: 75, bonds: 20, cash: 5 },
+                    '7': { equity: 85, bonds: 10, cash: 5 }
+                };
+                
+                const allocation = allocations[riskCategory] || allocations['4'];
+                recommendation += `RECOMMENDED ASSET ALLOCATION:\n`;
+                recommendation += `- Equities: ${allocation.equity}%\n`;
+                recommendation += `- Bonds/Fixed Income: ${allocation.bonds}%\n`;
+                recommendation += `- Cash/Money Market: ${allocation.cash}%\n\n`;
+            }
+            
+            // Platform recommendation
+            recommendation += `PLATFORM: A low-cost, flexible platform with comprehensive investment options and drawdown facilities is recommended to minimize ongoing charges while providing access to diversified investments.\n\n`;
+            
+            // Tax considerations
+            recommendation += `TAX EFFICIENCY: Utilize ISA allowances first, followed by pension contributions where applicable, to maximize tax efficiency.`;
+            
+            // Set the recommendation
+            document.getElementById('recommendationSummary').value = recommendation;
+            
+            // Income strategy detail
+            let incomeStrategy = `The recommended income strategy is designed to provide sustainable withdrawals while preserving capital for the long term.\n\n`;
+            if (employmentStatus === 'Retired') {
+                incomeStrategy += `As the client is retired, the focus is on generating regular income through a combination of natural yield and controlled capital withdrawals.`;
+            } else {
+                incomeStrategy += `While the client is still ${employmentStatus.toLowerCase()}, the strategy focuses on accumulation with provisions for future income generation.`;
+            }
+            document.getElementById('incomeStrategyDetail').value = incomeStrategy;
+            
+            // Investment strategy detail
+            const investmentStrategy = `The investment strategy aligns with the client's risk profile ${riskCategory} and consists of globally diversified holdings across multiple asset classes. The portfolio will be rebalanced quarterly to maintain target allocations and manage risk.`;
+            document.getElementById('investmentStrategyDetail').value = investmentStrategy;
+            
+            alert('Recommendation generated based on client data. Please review and adjust as necessary.');
+        }
+
         // Add table rows
         function addAssetRow() {
             const tbody = document.getElementById('assetsTableBody');
             const newRow = tbody.insertRow(-1);
             newRow.innerHTML = `
                 <td>
-                    <select name="asset_type[]">
+                    <select name="asset_type[]" onchange="updateProgress()">
                         <option value="Property">Property</option>
                         <option value="Cash">Cash/Savings</option>
                         <option value="Investment">Investments</option>
@@ -1817,10 +2300,10 @@
                         <option value="Other">Other</option>
                     </select>
                 </td>
-                <td><input type="text" name="asset_description[]"></td>
-                <td><input type="number" name="asset_value[]" min="0" step="100" onchange="calculateTotals()"></td>
+                <td><input type="text" name="asset_description[]" placeholder="e.g., Main residence, ISA portfolio" oninput="updateProgress()"></td>
+                <td><input type="number" name="asset_value[]" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£150,000-500,000"></td>
                 <td>
-                    <select name="asset_ownership[]">
+                    <select name="asset_ownership[]" onchange="updateProgress()">
                         <option value="Sole">Sole</option>
                         <option value="Joint">Joint</option>
                         <option value="Trust">Trust</option>
@@ -1843,9 +2326,9 @@
                         <option value="Other">Other</option>
                     </select>
                 </td>
-                <td><input type="text" name="liability_description[]"></td>
-                <td><input type="number" name="liability_outstanding[]" min="0" step="100" onchange="calculateTotals()"></td>
-                <td><input type="number" name="liability_payment[]" min="0" step="10"></td>
+                <td><input type="text" name="liability_description[]" placeholder="e.g., Main home, Halifax"></td>
+                <td><input type="number" name="liability_outstanding[]" min="0" step="1" onchange="calculateTotals()" placeholder="£50,000-300,000"></td>
+                <td><input type="number" name="liability_payment[]" min="0" step="1" placeholder="£500-2000"></td>
                 <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
             `;
         }
@@ -1854,7 +2337,7 @@
             const tbody = document.getElementById('pensionTableBody');
             const newRow = tbody.insertRow(-1);
             newRow.innerHTML = `
-                <td><input type="text" name="pension_provider[]"></td>
+                <td><input type="text" name="pension_provider[]" placeholder="e.g., Aviva, Scottish Widows"></td>
                 <td>
                     <select name="pension_type[]">
                         <option value="DC">Defined Contribution</option>
@@ -1863,8 +2346,8 @@
                         <option value="State">State Pension</option>
                     </select>
                 </td>
-                <td><input type="number" name="pension_value[]" min="0" step="100"></td>
-                <td><input type="number" name="pension_contribution[]" min="0" step="100"></td>
+                <td><input type="number" name="pension_value[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£50,000-500,000"></td>
+                <td><input type="number" name="pension_contribution[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£3,000-40,000"></td>
                 <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
             `;
         }
@@ -1884,7 +2367,7 @@
                         <option value="Alternatives">Alternative Investments</option>
                     </select>
                 </td>
-                <td><input type="number" name="experience_years[]" min="0" max="50"></td>
+                <td><input type="number" name="experience_years[]" min="0" max="50" step="1"></td>
                 <td>
                     <select name="experience_current[]">
                         <option value="Yes">Yes</option>
@@ -1898,6 +2381,7 @@
         function removeRow(button) {
             button.closest('tr').remove();
             calculateTotals();
+            calculateRetirement();
             updateProgress();
         }
 
@@ -1912,7 +2396,9 @@
             });
             
             document.querySelectorAll('[name^="income_"][name$="_expected"]').forEach(input => {
-                totalIncomeExpected += parseFloat(input.value) || 0;
+                const current = parseFloat(input.name.replace('_expected', '_current')) || 0;
+                const change = parseFloat(input.value) || 0;
+                totalIncomeExpected += current + change;
             });
             
             document.getElementById('totalIncomeCurrent').textContent = `£${totalIncomeCurrent.toLocaleString()}`;
@@ -1982,58 +2468,129 @@
             document.getElementById('totalOngoingCharges').value = `${ongoing.toFixed(2)}%`;
         }
 
-        // Progress tracking
+        // Progress tracking - counts all filled fields, not just required
         function updateProgress() {
             const sections = 13;
-            let completedSections = 0;
+            let totalFields = 0;
+            let filledFields = 0;
 
             for (let i = 1; i <= sections; i++) {
                 const section = document.getElementById(`section${i}`);
-                const requiredFields = section.querySelectorAll('[required]');
-                const checkboxGroups = section.querySelectorAll('.checkbox-group');
                 
+                // Count all input fields in the section
+                const inputs = section.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="button"]), select, textarea');
+                const checkboxGroups = section.querySelectorAll('.checkbox-group');
+                const radioGroups = {};
+                
+                // Count regular inputs
+                inputs.forEach(input => {
+                    if (input.name && !input.name.includes('[]')) {
+                        totalFields++;
+                        if (input.value && input.value.trim() !== '') {
+                            filledFields++;
+                        }
+                    }
+                });
+                
+                // Count checkbox groups (each group counts as one field)
+                checkboxGroups.forEach(group => {
+                    totalFields++;
+                    if (group.querySelector('input[type="checkbox"]:checked')) {
+                        filledFields++;
+                    }
+                });
+                
+                // Count radio button groups
+                section.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    if (!radioGroups[radio.name]) {
+                        radioGroups[radio.name] = false;
+                        totalFields++;
+                    }
+                    if (radio.checked) {
+                        radioGroups[radio.name] = true;
+                    }
+                });
+                
+                Object.entries(radioGroups).forEach(([name, checked]) => {
+                    if (checked) filledFields++;
+                });
+                
+                // Count table rows with data
+                const tables = section.querySelectorAll('table');
+                tables.forEach(table => {
+                    const dataRows = table.querySelectorAll('tbody tr:not(.auto-calc)');
+                    dataRows.forEach(row => {
+                        const rowInputs = row.querySelectorAll('input[name*="[]"], select[name*="[]"]');
+                        if (rowInputs.length > 0) {
+                            let rowHasData = false;
+                            rowInputs.forEach(input => {
+                                if (input.value && input.value.trim() !== '') {
+                                    rowHasData = true;
+                                }
+                            });
+                            if (rowHasData) {
+                                totalFields++;
+                                filledFields++;
+                            }
+                        }
+                    });
+                });
+                
+                // Update section status based on required fields only
+                const requiredFields = section.querySelectorAll('[required]');
                 let sectionComplete = true;
-
-                // Check required fields
+                
                 requiredFields.forEach(field => {
-                    if (!field.value && field.type !== 'checkbox' && field.type !== 'radio') {
+                    if (!field.value) {
                         sectionComplete = false;
                     }
                 });
-
-                // Check radio groups
-                const radioGroups = new Set();
+                
+                // Check required radio groups
+                const requiredRadioGroups = new Set();
                 section.querySelectorAll('input[type="radio"][required]').forEach(radio => {
-                    radioGroups.add(radio.name);
+                    requiredRadioGroups.add(radio.name);
                 });
                 
-                radioGroups.forEach(groupName => {
+                requiredRadioGroups.forEach(groupName => {
                     if (!section.querySelector(`input[name="${groupName}"]:checked`)) {
                         sectionComplete = false;
                     }
                 });
-
+                
                 // Update status indicator
                 const statusIndicator = document.getElementById(`status${i}`);
                 if (sectionComplete && requiredFields.length > 0) {
                     statusIndicator.classList.remove('status-incomplete');
                     statusIndicator.classList.add('status-complete');
-                    completedSections++;
-                } else {
+                } else if (requiredFields.length > 0) {
                     statusIndicator.classList.remove('status-complete');
                     statusIndicator.classList.add('status-incomplete');
                 }
             }
 
-            // Update progress bar
-            const progress = Math.round((completedSections / sections) * 100);
+            // Update progress bar based on filled fields
+            const progress = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
             const progressFill = document.getElementById('progressFill');
             progressFill.style.width = `${progress}%`;
             progressFill.textContent = `${progress}%`;
+            
+            // Add helpful text
+            const progressBar = document.querySelector('.progress-bar h3');
+            progressBar.textContent = `Form Completion Progress (${filledFields} of ${totalFields} fields)`;
         }
 
         // Save and load functions
         function saveForm() {
+            // Validate form first
+            const form = document.getElementById('suitabilityForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                updateValidationSummary();
+                alert('Please correct the validation errors before saving.');
+                return;
+            }
+            
             const formData = new FormData(document.getElementById('suitabilityForm'));
             const data = {};
             
@@ -2057,8 +2614,8 @@
                 experience: getTableData('experienceTableBody')
             };
 
-            // Generate unique ID
-            const formId = `IFA_Form_${Date.now()}`;
+            // Use existing form ID
+            const formId = document.getElementById('formUniqueId').textContent;
             data.formId = formId;
             data.savedDate = new Date().toISOString();
 
@@ -2069,52 +2626,6 @@
             showSaveIndicator();
             
             alert(`Form saved successfully!\nForm ID: ${formId}`);
-        }
-
-        function loadForm() {
-            const formId = prompt('Enter Form ID to load:');
-            if (!formId) return;
-
-            const savedData = localStorage.getItem(formId);
-            if (!savedData) {
-                alert('Form not found!');
-                return;
-            }
-
-            const data = JSON.parse(savedData);
-            
-            // Restore form fields
-            Object.keys(data).forEach(key => {
-                if (key !== 'tables' && key !== 'formId' && key !== 'savedDate') {
-                    const elements = document.getElementsByName(key);
-                    if (elements.length > 0) {
-                        if (elements[0].type === 'checkbox' || elements[0].type === 'radio') {
-                            elements.forEach(element => {
-                                if (Array.isArray(data[key])) {
-                                    element.checked = data[key].includes(element.value);
-                                } else {
-                                    element.checked = element.value === data[key];
-                                }
-                            });
-                        } else {
-                            elements[0].value = data[key];
-                        }
-                    }
-                }
-            });
-
-            // Restore tables
-            if (data.tables) {
-                restoreTableData('assetsTableBody', data.tables.assets);
-                restoreTableData('liabilitiesTableBody', data.tables.liabilities);
-                restoreTableData('pensionTableBody', data.tables.pensions);
-                restoreTableData('experienceTableBody', data.tables.experience);
-            }
-
-            calculateTotals();
-            updateProgress();
-            
-            alert('Form loaded successfully!');
         }
 
         function autoSave() {
@@ -2139,6 +2650,8 @@
                 experience: getTableData('experienceTableBody')
             };
 
+            data.formId = document.getElementById('formUniqueId').textContent;
+
             localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
         }
 
@@ -2149,8 +2662,12 @@
             if (confirm('Auto-saved data found. Would you like to restore it?')) {
                 const data = JSON.parse(savedData);
                 
+                if (data.formId) {
+                    document.getElementById('formUniqueId').textContent = data.formId;
+                }
+                
                 Object.keys(data).forEach(key => {
-                    if (key !== 'tables') {
+                    if (key !== 'tables' && key !== 'formId') {
                         const elements = document.getElementsByName(key);
                         if (elements.length > 0) {
                             if (elements[0].type === 'checkbox' || elements[0].type === 'radio') {
@@ -2162,7 +2679,7 @@
                                     }
                                 });
                             } else {
-                                elements[0].value = data[key];
+                                elements[0].value = data[key] || '';
                             }
                         }
                     }
@@ -2176,7 +2693,10 @@
                 }
 
                 calculateTotals();
+                calculateRetirement();
                 updateProgress();
+                checkVulnerabilities();
+                toggleKnowledgeNotes();
             }
         }
 
@@ -2218,9 +2738,12 @@
                         
                         if (inputData.type === 'number') {
                             element.min = "0";
-                            element.step = inputData.name.includes('value') || inputData.name.includes('outstanding') ? "100" : "10";
+                            element.step = "1";
                             if (inputData.name.includes('income') || inputData.name.includes('asset') || inputData.name.includes('liability')) {
                                 element.onchange = calculateTotals;
+                            }
+                            if (inputData.name.includes('pension')) {
+                                element.onchange = function() { calculateTotals(); calculateRetirement(); };
                             }
                         }
                     } else if (inputData.name && inputData.name.includes('[]')) {
@@ -2245,8 +2768,35 @@
                                 <option value="Car Finance">Car Finance</option>
                                 <option value="Other">Other</option>
                             `;
+                        } else if (inputData.name.includes('pension_type')) {
+                            element.innerHTML = `
+                                <option value="DC">Defined Contribution</option>
+                                <option value="DB">Defined Benefit</option>
+                                <option value="SIPP">SIPP</option>
+                                <option value="State">State Pension</option>
+                            `;
+                        } else if (inputData.name.includes('experience_type')) {
+                            element.innerHTML = `
+                                <option value="Cash">Cash/Deposits</option>
+                                <option value="Bonds">Bonds/Fixed Income</option>
+                                <option value="Equities">Equities/Shares</option>
+                                <option value="Funds">Mutual Funds/OEICs</option>
+                                <option value="ETFs">ETFs</option>
+                                <option value="Property">Property</option>
+                                <option value="Alternatives">Alternative Investments</option>
+                            `;
+                        } else if (inputData.name.includes('ownership')) {
+                            element.innerHTML = `
+                                <option value="Sole">Sole</option>
+                                <option value="Joint">Joint</option>
+                                <option value="Trust">Trust</option>
+                            `;
+                        } else if (inputData.name.includes('experience_current')) {
+                            element.innerHTML = `
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            `;
                         }
-                        // Add other select options as needed
                         
                         element.value = inputData.value;
                     }
@@ -2280,146 +2830,535 @@
                     else if (tableId === 'experienceTableBody') addExperienceRow();
                 });
                 
+                // Generate new form ID
+                generateFormId();
+                
+                // Reset calculated fields
+                document.getElementById('incomeGap').value = '£0';
+                document.getElementById('emergencyMonths').value = '0 months';
+                document.getElementById('totalOngoingCharges').value = '0.00%';
+                document.getElementById('currentAge').textContent = '-';
+                document.getElementById('yearsToRetirement').textContent = '-';
+                document.getElementById('totalPensionValue').textContent = '£0';
+                document.getElementById('totalPensionContributions').textContent = '£0';
+                document.getElementById('projectedPensionValue').textContent = '£0';
+                
                 calculateTotals();
+                calculateRetirement();
                 updateProgress();
+                checkVulnerabilities();
+                toggleKnowledgeNotes();
                 
                 // Clear auto-save
                 localStorage.removeItem('IFA_Form_AutoSave');
+                
+                // Clear validation summary
+                document.getElementById('validationSummary').classList.remove('show');
             }
         }
 
-        function showSaveIndicator() {
+        function showSaveIndicator(message = 'Form saved successfully!') {
             const indicator = document.getElementById('saveIndicator');
+            indicator.textContent = message;
             indicator.style.display = 'block';
             setTimeout(() => {
                 indicator.style.display = 'none';
             }, 2000);
         }
 
-        // Export functions
-        function exportToCSV() {
-            const formData = collectAllFormData();
-            let csv = 'IFA Suitability Assessment Form\n';
-            csv += `Export Date: ${new Date().toLocaleDateString()}\n\n`;
-
-            // Add sections
-            csv += 'Section 1: Client Details & Objectives\n';
-            csv += formatDataForCSV(formData.section1);
-            
-            csv += '\nSection 2: Financial Assessment\n';
-            csv += formatDataForCSV(formData.section2);
-            csv += '\nIncome Analysis\n';
-            csv += tableToCSV('incomeTable');
-            csv += '\nExpenditure Analysis\n';
-            csv += tableToCSV('expenditureTable');
-            csv += '\nAssets\n';
-            csv += tableToCSV('assetsTable');
-            csv += '\nLiabilities\n';
-            csv += tableToCSV('liabilitiesTable');
-            
-            // Add other sections...
-            
-            downloadFile(csv, 'IFA_Suitability_Assessment.csv', 'text/csv');
-        }
-
+        // Export to Excel function
         function exportToExcel() {
-            // For Excel export, we'll create a formatted HTML table
             const formData = collectAllFormData();
+            const formId = document.getElementById('formUniqueId').textContent;
+            
             let html = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
                 <head>
                     <meta charset="utf-8">
                     <style>
-                        table { border-collapse: collapse; }
-                        th, td { border: 1px solid black; padding: 8px; }
-                        th { background-color: #4472C4; color: white; }
-                        .section-header { background-color: #E7F1FF; font-weight: bold; }
+                        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                        th { background-color: #4472C4; color: white; font-weight: bold; }
+                        .section-header { background-color: #E7F1FF; font-weight: bold; font-size: 16px; }
+                        .subsection-header { background-color: #F5F5F5; font-weight: bold; }
+                        .label { font-weight: bold; width: 40%; }
+                        .value { width: 60%; }
                     </style>
                 </head>
                 <body>
                     <h1>IFA Suitability Assessment Form</h1>
-                    <p>Export Date: ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Form ID:</strong> ${formId}</p>
+                    <p><strong>Export Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <br>
             `;
 
-            // Add all sections with proper formatting
-            html += formatDataForExcel(formData);
+            // Process each section
+            for (let i = 1; i <= 13; i++) {
+                const sectionTitle = document.querySelector(`#section${i} h2`).textContent.trim();
+                const section = document.getElementById(`section${i}`);
+                
+                html += `<table>`;
+                html += `<tr><td colspan="2" class="section-header">${sectionTitle}</td></tr>`;
+                
+                // Get all inputs in the section
+                const inputs = section.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([name*="[]"]), select:not([name*="[]"]), textarea');
+                inputs.forEach(input => {
+                    if (input.name && input.value) {
+                        const label = input.closest('.form-group')?.querySelector('label')?.textContent.replace(/[*?]/g, '').trim() || input.name;
+                        html += `<tr><td class="label">${label}</td><td class="value">${input.value}</td></tr>`;
+                    }
+                });
+                
+                // Handle checkboxes
+                const checkboxGroups = section.querySelectorAll('.checkbox-group');
+                checkboxGroups.forEach(group => {
+                    const groupLabel = group.previousElementSibling?.textContent.replace(/[*?]/g, '').trim() || 'Options';
+                    const checked = Array.from(group.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
+                        const label = group.querySelector(`label[for="${cb.id}"]`)?.textContent || cb.value;
+                        return label;
+                    });
+                    if (checked.length > 0) {
+                        html += `<tr><td class="label">${groupLabel}</td><td class="value">${checked.join(', ')}</td></tr>`;
+                    }
+                });
+                
+                // Handle radio buttons
+                const radioGroups = {};
+                section.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                    const label = radio.closest('.form-group')?.querySelector('label:first-child')?.textContent.replace(/[*?]/g, '').trim() || radio.name;
+                    radioGroups[radio.name] = { label, value: radio.value };
+                });
+                Object.values(radioGroups).forEach(group => {
+                    html += `<tr><td class="label">${group.label}</td><td class="value">${group.value}</td></tr>`;
+                });
+                
+                // Handle tables
+                const tables = section.querySelectorAll('table');
+                tables.forEach(table => {
+                    if (table.id && table.querySelector('tbody tr')) {
+                        const tableTitle = table.id.replace('Table', ' Data').replace(/([A-Z])/g, ' $1').trim();
+                        html += `<tr><td colspan="2" class="subsection-header">${tableTitle}</td></tr>`;
+                        
+                        // Add table data
+                        const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+                        const rows = table.querySelectorAll('tbody tr:not(.auto-calc)');
+                        
+                        if (rows.length > 0) {
+                            html += `<tr><td colspan="2">`;
+                            html += `<table style="width: 100%; margin: 5px 0;">`;
+                            html += `<tr>${headers.map(h => `<th style="font-size: 12px;">${h}</th>`).join('')}</tr>`;
+                            
+                            rows.forEach(row => {
+                                html += '<tr>';
+                                row.querySelectorAll('td').forEach(cell => {
+                                    const input = cell.querySelector('input, select');
+                                    if (input) {
+                                        html += `<td>${input.value || '-'}</td>`;
+                                    } else if (!cell.querySelector('button')) {
+                                        html += `<td>${cell.textContent || '-'}</td>`;
+                                    }
+                                });
+                                html += '</tr>';
+                            });
+                            
+                            html += `</table>`;
+                            html += `</td></tr>`;
+                        }
+                    }
+                });
+                
+                html += `</table><br>`;
+            }
             
             html += '</body></html>';
             
-            downloadFile(html, 'IFA_Suitability_Assessment.xls', 'application/vnd.ms-excel');
+            downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
+        }
+
+        // Generate Suitability Report for Client
+        function generateSuitabilityReport() {
+            // Validate form first
+            const form = document.getElementById('suitabilityForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                updateValidationSummary();
+                alert('Please complete all required fields before generating the suitability report.');
+                return;
+            }
+
+            // Collect all data
+            const formId = document.getElementById('formUniqueId').textContent;
+            const currentDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            
+            // Client details
+            const title = document.getElementById('title').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const clientName = `${title} ${firstName} ${lastName}`;
+            const dob = new Date(document.getElementById('dob').value).toLocaleDateString('en-GB');
+            const address = `${document.getElementById('addressLine1').value}, ${document.getElementById('city').value}, ${document.getElementById('postcode').value}`;
+            
+            // Objectives and risk
+            const primaryObjective = document.getElementById('primaryObjective').value;
+            const timeHorizon = document.getElementById('timeHorizon').value;
+            const riskCategory = document.getElementById('riskCategory').value;
+            const riskDescriptions = {
+                '1': 'Very Low Risk - Capital preservation focused',
+                '2': 'Low Risk - Cautious approach with limited volatility',
+                '3': 'Low to Medium Risk - Balanced approach',
+                '4': 'Medium Risk - Balanced growth approach',
+                '5': 'Medium to High Risk - Growth focused',
+                '6': 'High Risk - Aggressive growth approach',
+                '7': 'Very High Risk - Maximum growth potential'
+            };
+            
+            // Financial summary
+            const netWorth = document.getElementById('netWorth').textContent;
+            const incomeRequirement = document.getElementById('incomeRequirement').value || 'Not specified';
+            const recommendationSummary = document.getElementById('recommendationSummary').value;
+            const incomeStrategy = document.getElementById('incomeStrategyDetail').value;
+            const investmentStrategy = document.getElementById('investmentStrategyDetail').value;
+            
+            // Costs
+            const initialCharge = document.getElementById('initialAdviserCharge').value || '0';
+            const ongoingCharge = document.getElementById('ongoingAdviserCharge').value || '0';
+            const totalOngoingCharges = document.getElementById('totalOngoingCharges').value;
+            
+            // Generate report HTML
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Suitability Report - ${clientName}</title>
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 2cm;
+                        }
+                        
+                        body {
+                            font-family: 'Arial', sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                            max-width: 800px;
+                            margin: 0 auto;
+                            padding: 20px;
+                        }
+                        
+                        .header {
+                            text-align: center;
+                            margin-bottom: 40px;
+                            padding-bottom: 20px;
+                            border-bottom: 2px solid #003366;
+                        }
+                        
+                        .header h1 {
+                            color: #003366;
+                            margin-bottom: 10px;
+                        }
+                        
+                        .header .subtitle {
+                            color: #666;
+                            font-size: 14px;
+                        }
+                        
+                        .client-info {
+                            background-color: #f0f4f8;
+                            padding: 20px;
+                            border-radius: 8px;
+                            margin-bottom: 30px;
+                        }
+                        
+                        .client-info h2 {
+                            color: #003366;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .info-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                        }
+                        
+                        .info-item {
+                            margin-bottom: 5px;
+                        }
+                        
+                        .info-label {
+                            font-weight: bold;
+                            color: #555;
+                        }
+                        
+                        .section {
+                            margin-bottom: 30px;
+                            page-break-inside: avoid;
+                        }
+                        
+                        .section h2 {
+                            color: #003366;
+                            border-bottom: 1px solid #ddd;
+                            padding-bottom: 10px;
+                            margin-bottom: 20px;
+                        }
+                        
+                        .section h3 {
+                            color: #4472C4;
+                            margin-top: 20px;
+                            margin-bottom: 10px;
+                        }
+                        
+                        .recommendation-box {
+                            background-color: #e7f1ff;
+                            border-left: 4px solid #4472C4;
+                            padding: 20px;
+                            margin: 20px 0;
+                        }
+                        
+                        .recommendation-box h3 {
+                            margin-top: 0;
+                        }
+                        
+                        .risk-profile {
+                            background-color: #fff3cd;
+                            border: 1px solid #ffeaa7;
+                            padding: 15px;
+                            border-radius: 5px;
+                            margin: 20px 0;
+                        }
+                        
+                        .cost-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 20px;
+                        }
+                        
+                        .cost-table th,
+                        .cost-table td {
+                            border: 1px solid #ddd;
+                            padding: 10px;
+                            text-align: left;
+                        }
+                        
+                        .cost-table th {
+                            background-color: #f0f4f8;
+                            font-weight: bold;
+                        }
+                        
+                        .important-notice {
+                            background-color: #fff5f5;
+                            border: 1px solid #ffdddd;
+                            padding: 15px;
+                            margin: 20px 0;
+                            border-radius: 5px;
+                        }
+                        
+                        .important-notice h3 {
+                            color: #dc3545;
+                            margin-top: 0;
+                        }
+                        
+                        .footer {
+                            margin-top: 50px;
+                            padding-top: 20px;
+                            border-top: 1px solid #ddd;
+                            text-align: center;
+                            color: #666;
+                            font-size: 12px;
+                        }
+                        
+                        .signature-section {
+                            margin-top: 40px;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 40px;
+                        }
+                        
+                        .signature-box {
+                            padding-top: 20px;
+                        }
+                        
+                        .signature-line {
+                            border-bottom: 1px solid #333;
+                            margin-bottom: 5px;
+                            height: 40px;
+                        }
+                        
+                        @media print {
+                            body {
+                                margin: 0;
+                                padding: 0;
+                            }
+                            
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Suitability Report</h1>
+                        <div class="subtitle">
+                            Prepared for ${clientName}<br>
+                            Date: ${currentDate}<br>
+                            Reference: ${formId}
+                        </div>
+                    </div>
+
+                    <div class="client-info">
+                        <h2>Client Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Name:</span> ${clientName}
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Date of Birth:</span> ${dob}
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Address:</span> ${address}
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Report Date:</span> ${currentDate}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Executive Summary</h2>
+                        <p>Following our recent meeting and comprehensive financial assessment, I am pleased to present this suitability report outlining my recommendations for your financial planning needs.</p>
+                        
+                        <div class="recommendation-box">
+                            <h3>Primary Objective</h3>
+                            <p>${primaryObjective}</p>
+                            <p><strong>Time Horizon:</strong> ${timeHorizon} Term</p>
+                            ${incomeRequirement !== 'Not specified' ? `<p><strong>Income Requirement:</strong> £${parseInt(incomeRequirement).toLocaleString()} per annum</p>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h2>Risk Profile Assessment</h2>
+                        <div class="risk-profile">
+                            <h3>Your Risk Profile: ${riskDescriptions[riskCategory] || 'Not assessed'}</h3>
+                            <p>Based on our detailed risk assessment, you have been categorized as a risk level ${riskCategory} investor. This assessment considers both your attitude to risk and your capacity for loss.</p>
+                        </div>
+                        <p>This risk profile has been determined through careful consideration of your financial circumstances, investment experience, and personal preferences. It forms the foundation of our investment recommendations.</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>Recommendations</h2>
+                        
+                        <h3>Overall Strategy</h3>
+                        <p>${recommendationSummary.replace(/\n/g, '<br>')}</p>
+
+                        ${incomeStrategy ? `
+                        <h3>Income Strategy</h3>
+                        <p>${incomeStrategy.replace(/\n/g, '<br>')}</p>
+                        ` : ''}
+
+                        ${investmentStrategy ? `
+                        <h3>Investment Strategy</h3>
+                        <p>${investmentStrategy.replace(/\n/g, '<br>')}</p>
+                        ` : ''}
+                    </div>
+
+                    <div class="section">
+                        <h2>Costs and Charges</h2>
+                        <p>Full transparency of costs is important to help you understand the value you receive. Below is a breakdown of all charges associated with our recommendations:</p>
+                        
+                        <table class="cost-table">
+                            <tr>
+                                <th>Charge Type</th>
+                                <th>Amount</th>
+                            </tr>
+                            <tr>
+                                <td>Initial Adviser Charge</td>
+                                <td>£${parseInt(initialCharge || 0).toLocaleString()}</td>
+                            </tr>
+                            <tr>
+                                <td>Ongoing Adviser Charge</td>
+                                <td>${ongoingCharge}% per annum</td>
+                            </tr>
+                            <tr>
+                                <td>Total Ongoing Charges (including platform and fund charges)</td>
+                                <td>${totalOngoingCharges}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>Important Information</h2>
+                        
+                        <div class="important-notice">
+                            <h3>Risk Warnings</h3>
+                            <ul>
+                                <li>The value of investments can fall as well as rise and you may get back less than you invested</li>
+                                <li>Past performance is not a reliable indicator of future results</li>
+                                <li>Inflation will reduce the real value of money over time</li>
+                                <li>Tax treatment depends on individual circumstances and may change in the future</li>
+                                <li>Some investments may be difficult to sell quickly</li>
+                            </ul>
+                        </div>
+
+                        <h3>Next Steps</h3>
+                        <ol>
+                            <li>Review this report carefully and ensure you understand all recommendations</li>
+                            <li>Contact me if you have any questions or require clarification</li>
+                            <li>Confirm your agreement to proceed with the recommendations</li>
+                            <li>We will then implement the agreed strategy on your behalf</li>
+                        </ol>
+                    </div>
+
+                    <div class="section">
+                        <h2>Declaration</h2>
+                        <p>This report has been prepared specifically for ${clientName} based on the information provided and discussions held. The recommendations are suitable for your stated objectives, risk profile, and financial circumstances as at ${currentDate}.</p>
+                        
+                        <div class="signature-section">
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <p>Client Signature<br>${clientName}</p>
+                            </div>
+                            <div class="signature-box">
+                                <div class="signature-line"></div>
+                                <p>Date</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="footer">
+                        <p>This suitability report has been prepared in accordance with FCA rules and regulations.<br>
+                        Your home may be repossessed if you do not keep up repayments on your mortgage.<br>
+                        The Financial Conduct Authority does not regulate some forms of buy to let mortgages.</p>
+                    </div>
+
+                    <div class="no-print" style="text-align: center; margin-top: 30px;">
+                        <button onclick="window.print()" style="padding: 10px 30px; font-size: 16px; background-color: #4472C4; color: white; border: none; border-radius: 5px; cursor: pointer;">Print / Save as PDF</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            reportWindow.document.close();
         }
 
         function collectAllFormData() {
             const form = document.getElementById('suitabilityForm');
             const formData = new FormData(form);
-            const data = {
-                section1: {},
-                section2: {},
-                // ... other sections
-            };
-
-            // Collect data by sections
-            // This is a simplified version - expand as needed
+            const data = {};
+            
             for (let [key, value] of formData.entries()) {
-                // Categorize by section based on field names
-                if (key.startsWith('client') || key.startsWith('advice') || key.includes('Objective')) {
-                    data.section1[key] = value;
-                } else if (key.startsWith('income') || key.startsWith('exp') || key.startsWith('asset') || key.startsWith('liability')) {
-                    data.section2[key] = value;
-                }
-                // Add other sections...
-            }
-
-            return data;
-        }
-
-        function formatDataForCSV(data) {
-            let csv = '';
-            Object.entries(data).forEach(([key, value]) => {
-                csv += `"${key}","${value}"\n`;
-            });
-            return csv;
-        }
-
-        function tableToCSV(tableId) {
-            const table = document.getElementById(tableId);
-            let csv = '';
-            
-            // Headers
-            const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
-            csv += headers.join(',') + '\n';
-            
-            // Rows
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const values = [];
-                row.querySelectorAll('td').forEach(cell => {
-                    const input = cell.querySelector('input, select');
-                    if (input) {
-                        values.push(`"${input.value}"`);
-                    } else {
-                        values.push(`"${cell.textContent}"`);
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) {
+                        data[key] = [data[key]];
                     }
-                });
-                csv += values.join(',') + '\n';
-            });
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
             
-            return csv;
-        }
-
-        function formatDataForExcel(data) {
-            // Create HTML tables for Excel
-            let html = '<table>';
-            
-            Object.entries(data).forEach(([section, sectionData]) => {
-                html += `<tr><td colspan="2" class="section-header">${section.toUpperCase()}</td></tr>`;
-                Object.entries(sectionData).forEach(([key, value]) => {
-                    html += `<tr><td>${key}</td><td>${value}</td></tr>`;
-                });
-            });
-            
-            html += '</table>';
-            return html;
+            return data;
         }
 
         function downloadFile(content, filename, mimeType) {
