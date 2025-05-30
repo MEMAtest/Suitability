@@ -3376,58 +3376,17 @@
         function printForm() {
             window.print();
         }
-    </script> </script> <!-- 1️⃣  Load the v2 Supabase client -->
+    </script> <!-- Load Supabase v2 client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<!-- Instantiate the client -->
 <script>
-/* 2️⃣  ----  CONFIG  --------------------------------------------- */
-const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';   // https://supabase.com/dashboard/project/maandodhonjolrmcxivo/settings/api-keys
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...'; // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE
-/* ---------------------------------------------------------------- */
+  const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
+  /*  ⬇️  Paste the **full** anon public key — it is ~200 characters long.  */
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-/* 3️⃣  SAVE  –- adapts your existing saveForm() function  */
-async function saveForm() {
-  const form = document.getElementById('suitabilityForm');
-  if (!form.checkValidity()) { form.reportValidity(); return; }
-
-  /* Gather the existing payload you already build for localStorage */
-  const formId   = document.getElementById('formUniqueId').textContent;
-  const payload  = collectAllFormData();           // ← you already wrote this
-  const userId   = (await supabase.auth.getUser()).data?.user?.id ?? null;
-
-  /* Write or update the row */
-  const { error } = await supabase
-        .from('ifa_forms')
-        .upsert({
-          id:        formId,        // ← **uuid** primary key – uses existing id if present
-          form_id:   formId,        // text copy (optional)
-          payload:   payload,       // jsonb
-          user_id:   userId         // NULL until you add Auth
-        }, { onConflict: 'id' });
-
-  if (error) {
-      console.error(error);
-      alert('❌  Could not save to Supabase');
-  } else {
-      showSaveIndicator('✅ Saved to Supabase!');
-      localStorage.removeItem('IFA_Form_AutoSave');   // we’re cloud-saving now
-  }
-}
-
-/* 4️⃣  LOAD  –- pull the most-recent record for this user/form  */
-async function loadFromSupabase(formId) {
-  const { data, error } = await supabase
-        .from('ifa_forms')
-        .select('payload')
-        .eq('id', formId)
-        .single();
-
-  if (!error && data?.payload) {
-      restoreFromPayload(data.payload);   // you already have restoreTableData etc.
-  }
-}
+  window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
+
 </body>
 </html>
