@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -155,6 +155,46 @@
             color: white;
             font-weight: bold;
             font-size: 12px;
+        }
+
+        /* Database connection status */
+        .db-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            z-index: 999;
+        }
+
+        .db-status.connected {
+            border: 2px solid var(--success-green);
+            color: var(--success-green);
+        }
+
+        .db-status.disconnected {
+            border: 2px solid var(--danger-red);
+            color: var(--danger-red);
+        }
+
+        .db-status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         /* Back to top button */
@@ -686,6 +726,11 @@
         </div>
     </div>
 
+    <div class="db-status disconnected" id="dbStatus">
+        <span class="status-dot"></span>
+        <span>Database: <span id="dbStatusText">Connecting...</span></span>
+    </div>
+
     <div class="back-to-top" onclick="scrollToTop()">
         <span style="font-size: 24px;">↑</span>
     </div>
@@ -698,6 +743,7 @@
             <button class="btn btn-success" onclick="generateSuitabilityReport()">📄 Generate Client Report</button>
             <button class="btn btn-warning" onclick="printForm()">🖨️ Print</button>
             <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
+            <button class="btn btn-primary" onclick="testDatabaseConnection()" title="Test Database Connection">🔄 Test DB</button>
         </div>
 
         <div class="validation-summary" id="validationSummary">
@@ -1903,7 +1949,174 @@
 
     <div class="save-indicator" id="saveIndicator">Form saved successfully!</div>
 
+    <!-- Supabase Integration - Moved to top of scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
+        
+        let supabaseClient = null;
+        
+        // Test database connection with detailed debugging
+        async function testDatabaseConnection() {
+            console.log('Testing database connection...');
+            console.log('SUPABASE_URL:', SUPABASE_URL);
+            console.log('SUPABASE_KEY:', SUPABASE_KEY.substring(0, 20) + '...');
+            
+            const dbStatus = document.getElementById('dbStatus');
+            const dbStatusText = document.getElementById('dbStatusText');
+            
+            try {
+                // Initialize Supabase client
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('Supabase client created successfully');
+                
+                // First, try to check if we can reach Supabase at all
+                console.log('Attempting to query ifa_forms table...');
+                
+                // Test connection by attempting a simple query
+                const { data, error } = await supabaseClient
+                    .from('ifa_forms')
+                    .select('count')
+                    .limit(1);
+                
+                console.log('Query response:', { data, error });
+                
+                if (error) {
+                    console.error('Database error details:', {
+                        message: error.message,
+                        code: error.code,
+                        details: error.details,
+                        hint: error.hint
+                    });
+                    
+                    // Check specific error types
+                    if (error.code === '42P01') {
+                        throw new Error('Table "ifa_forms" does not exist. Please create the table first.');
+                    } else if (error.message.includes('JWSError') || error.message.includes('JWT')) {
+                        throw new Error('Invalid API key. Please check your Supabase anon key.');
+                    } else if (error.message.includes('RLS') || error.code === 'PGRST301') {
+                        // RLS is enabled but no policies allow access
+                        console.log('RLS policy detected - connection successful but access denied');
+                        dbStatus.classList.remove('disconnected');
+                        dbStatus.classList.add('connected');
+                        dbStatusText.textContent = 'Connected (RLS Active)';
+                        
+                        // Show RLS warning
+                        showRLSWarning();
+                        return true;
+                    } else if (error.message.includes('Failed to fetch')) {
+                        throw new Error('Network error - cannot reach Supabase. Check your internet connection.');
+                    }
+                    throw error;
+                }
+                
+                console.log('Database connection successful');
+                dbStatus.classList.remove('disconnected');
+                dbStatus.classList.add('connected');
+                dbStatusText.textContent = 'Connected';
+                return true;
+                
+            } catch (error) {
+                console.error('Database connection failed:', error);
+                dbStatus.classList.remove('connected');
+                dbStatus.classList.add('disconnected');
+                
+                // Show detailed error message
+                const errorMessage = error.message || 'Unknown error';
+                dbStatusText.textContent = 'Error - See Console';
+                
+                // Show user-friendly alert with instructions
+                showConnectionError(errorMessage);
+                
+                return false;
+            }
+        }
+
+        // Show RLS warning
+        function showRLSWarning() {
+            const warning = document.createElement('div');
+            warning.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 15px 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                max-width: 600px;
+            `;
+            warning.innerHTML = `
+                <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Row Level Security Active</h4>
+                <p style="margin: 0 0 10px 0; color: #856404;">
+                    Database connected but Row Level Security (RLS) is blocking access. 
+                    To fix this, either:
+                </p>
+                <ol style="margin: 0 0 10px 0; padding-left: 20px; color: #856404;">
+                    <li>Disable RLS on the ifa_forms table (for testing only)</li>
+                    <li>Add proper RLS policies (recommended)</li>
+                </ol>
+                <button onclick="this.parentElement.remove()" style="background: #856404; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">
+                    Dismiss
+                </button>
+            `;
+            document.body.appendChild(warning);
+            
+            // Auto-remove after 30 seconds
+            setTimeout(() => {
+                if (warning.parentElement) {
+                    warning.remove();
+                }
+            }, 30000);
+        }
+
+        // Show connection error with detailed instructions
+        function showConnectionError(errorMessage) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                border-radius: 8px;
+                padding: 15px 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 10000;
+                max-width: 600px;
+            `;
+            errorDiv.innerHTML = `
+                <h4 style="margin: 0 0 10px 0; color: #721c24;">❌ Database Connection Failed</h4>
+                <p style="margin: 0 0 10px 0; color: #721c24;">
+                    <strong>Error:</strong> ${errorMessage}
+                </p>
+                <p style="margin: 0 0 10px 0; color: #721c24;">
+                    The form will continue to work using local storage only.
+                </p>
+                <details style="margin: 10px 0;">
+                    <summary style="cursor: pointer; color: #721c24; font-weight: bold;">
+                        Troubleshooting Steps
+                    </summary>
+                    <ol style="margin: 10px 0 0 0; padding-left: 20px; color: #721c24; font-size: 14px;">
+                        <li>Check your internet connection</li>
+                        <li>Verify your Supabase project is active (not paused)</li>
+                        <li>Confirm the project URL and anon key are correct</li>
+                        <li>Check if RLS is enabled on the ifa_forms table</li>
+                        <li>Ensure the ifa_forms table exists with correct structure</li>
+                    </ol>
+                </details>
+                <button onclick="this.parentElement.remove()" style="background: #721c24; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer;">
+                    Dismiss
+                </button>
+            `;
+            document.body.appendChild(errorDiv);
+        }
+
         // Country list for tax residency
         const countries = [
             "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", 
@@ -1933,7 +2146,14 @@
         ];
 
         // Initialize form
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('IFA Form Initializing...');
+            console.log('For debugging, run: window.runDiagnostics() in the console');
+            console.log('For quick SQL setup, run: window.showSQLSetup() in the console');
+            
+            // Test database connection first
+            await testDatabaseConnection();
+            
             // Generate unique form ID
             generateFormId();
 
@@ -2618,10 +2838,17 @@
             progressBar.textContent = `Form Completion Progress (${filledFields} of ${totalFields} fields)`;
         }
 
-        // Save and load functions
+        // Save and load functions with proper Supabase integration
         async function saveForm() {
             console.log('SaveForm function started');
-            console.log('Is window.supabase available?', !!window.supabase);
+            
+            // Check database connection
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                alert('Database connection not available. Form will be saved locally.');
+                saveToLocalStorageOnly();
+                return;
+            }
             
             // Validate form first
             const form = document.getElementById('suitabilityForm');
@@ -2660,33 +2887,40 @@
             data.formId = formId;
             data.savedDate = new Date().toISOString();
 
-            console.log('About to save to Supabase with:', {
-                form_id: formId,
-                payload: { formData: data, type: 'form' }
-            });
+            console.log('Attempting to save to Supabase with form_id:', formId);
 
             // Save to Supabase
             try {
-                if (!window.supabase) {
-                    throw new Error('Supabase client not initialized');
-                }
-
-                const { data: savedForm, error } = await window.supabase
+                const { data: savedForm, error } = await supabaseClient
                     .from('ifa_forms')
                     .upsert({
                         form_id: formId,
                         payload: {
                             formData: data,
                             type: 'form'
-                        }
+                        },
+                        updated_at: new Date().toISOString()
                     }, {
                         onConflict: 'form_id'
                     });
 
-                console.log('Supabase response:', { savedForm, error });
+                if (error) {
+                    console.error('Supabase error:', error);
+                    
+                    // Handle specific error types
+                    if (error.code === '42501' || error.message.includes('RLS')) {
+                        // RLS policy error
+                        throw new Error('Database access denied. Please check Row Level Security policies.');
+                    } else if (error.code === '23505') {
+                        // Duplicate key error
+                        throw new Error('Form ID already exists. Please refresh and try again.');
+                    } else {
+                        throw error;
+                    }
+                }
 
-                if (error) throw error;
-
+                console.log('Form saved successfully to Supabase');
+                
                 // Also save to localStorage as backup
                 localStorage.setItem(formId, JSON.stringify(data));
                 
@@ -2694,15 +2928,55 @@
                 showSaveIndicator();
                 
                 alert(`Form saved successfully to database!\nForm ID: ${formId}`);
+                
             } catch (error) {
                 console.error('Error saving to Supabase:', error);
-                // Fallback to localStorage
+                
+                // Save to localStorage as fallback
                 localStorage.setItem(formId, JSON.stringify(data));
-                showSaveIndicator('Form saved locally (database error)');
-                alert(`Form saved locally. Database error: ${error.message}`);
+                showSaveIndicator(`Form saved locally (Database error: ${error.message})`);
+                
+                alert(`Form saved locally due to database error:\n${error.message}\n\nForm ID: ${formId}`);
             }
         }
-   async function autoSave() {
+
+        function saveToLocalStorageOnly() {
+            const formData = new FormData(document.getElementById('suitabilityForm'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) {
+                        data[key] = [data[key]];
+                    }
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            data.tables = {
+                assets: getTableData('assetsTableBody'),
+                liabilities: getTableData('liabilitiesTableBody'),
+                pensions: getTableData('pensionTableBody'),
+                experience: getTableData('experienceTableBody')
+            };
+
+            const formId = document.getElementById('formUniqueId').textContent;
+            data.formId = formId;
+            data.savedDate = new Date().toISOString();
+
+            localStorage.setItem(formId, JSON.stringify(data));
+            showSaveIndicator('Form saved locally');
+            alert(`Form saved locally!\nForm ID: ${formId}`);
+        }
+
+        async function autoSave() {
+            if (!supabaseClient) {
+                console.log('Supabase not available for autosave');
+                return;
+            }
+
             const formData = new FormData(document.getElementById('suitabilityForm'));
             const data = {};
             
@@ -2732,34 +3006,57 @@
 
             // Try to save to Supabase (silently in background)
             try {
-                await window.supabase
+                await supabaseClient
                     .from('ifa_forms')
                     .upsert({
-                        form_id: data.formId,
+                        form_id: data.formId + '_autosave',
                         payload: {
                             formData: data,
                             type: 'autosave'
-                        }
+                        },
+                        updated_at: new Date().toISOString()
                     }, {
                         onConflict: 'form_id'
                     });
+                console.log('AutoSave successful');
             } catch (error) {
                 console.error('AutoSave to Supabase failed:', error);
             }
         }
 
- async function loadSavedForms() {
+        async function loadSavedForms() {
+            if (!supabaseClient) {
+                alert('Database connection not available. Cannot load saved forms.');
+                return;
+            }
+
             try {
                 // Get all forms from Supabase
-                const { data: forms, error } = await window.supabase
+                const { data: forms, error } = await supabaseClient
                     .from('ifa_forms')
-                    .select('form_id, payload, created_at')
-                    .eq('payload->type', 'form')
-                    .order('created_at', { ascending: false });
+                    .select('form_id, payload, created_at, updated_at')
+                    .order('updated_at', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading forms:', error);
+                    
+                    if (error.code === '42501' || error.message.includes('RLS')) {
+                        alert('Database access denied. Please check Row Level Security policies.');
+                    } else {
+                        alert(`Error loading forms: ${error.message}`);
+                    }
+                    return;
+                }
 
-                if (!forms || forms.length === 0) {
+                // Filter only main forms (not autosaves or reports)
+                const mainForms = forms ? forms.filter(f => 
+                    f.payload?.type === 'form' && 
+                    !f.form_id.includes('_autosave') &&
+                    !f.form_id.includes('_report') &&
+                    !f.form_id.includes('_excel')
+                ) : [];
+
+                if (mainForms.length === 0) {
                     alert('No saved forms found in database.');
                     return;
                 }
@@ -2768,10 +3065,10 @@
                 let html = '<h3>Select a form to load:</h3><table class="modal-table">';
                 html += '<tr><th>Form ID</th><th>Client Name</th><th>Date Saved</th><th>Action</th></tr>';
                 
-                forms.forEach(form => {
+                mainForms.forEach(form => {
                     const formData = form.payload.formData;
                     const clientName = `${formData.title || ''} ${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Unknown';
-                    const savedDate = new Date(form.created_at).toLocaleString();
+                    const savedDate = new Date(form.updated_at || form.created_at).toLocaleString();
                     
                     html += `<tr>`;
                     html += `<td>${form.form_id}</td>`;
@@ -2813,15 +3110,24 @@
         }
 
         async function loadFormById(formId) {
+            if (!supabaseClient) {
+                alert('Database connection not available.');
+                return;
+            }
+
             try {
                 // Get the form from Supabase
-                const { data: form, error } = await window.supabase
+                const { data: form, error } = await supabaseClient
                     .from('ifa_forms')
                     .select('payload')
                     .eq('form_id', formId)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error loading form:', error);
+                    alert(`Error loading form: ${error.message}`);
+                    return;
+                }
 
                 const data = form.payload.formData;
                 
@@ -2836,7 +3142,7 @@
                     
                     // Load all form fields
                     Object.keys(data).forEach(key => {
-                        if (key !== 'tables' && key !== 'formId') {
+                        if (key !== 'tables' && key !== 'formId' && key !== 'savedDate') {
                             const elements = document.getElementsByName(key);
                             if (elements.length > 0) {
                                 if (elements[0].type === 'checkbox' || elements[0].type === 'radio') {
@@ -2880,6 +3186,7 @@
                 alert('Error loading form: ' + error.message);
             }
         }
+
         function loadAutoSave() {
             const savedData = localStorage.getItem('IFA_Form_AutoSave');
             if (!savedData) return;
@@ -3092,10 +3399,54 @@
         }
 
         // Export to Excel function
-async function exportToExcel() {
+        async function exportToExcel() {
+            if (!supabaseClient) {
+                console.log('Supabase not available for Excel export');
+                exportToExcelLocally();
+                return;
+            }
+
             const formData = collectAllFormData();
             const formId = document.getElementById('formUniqueId').textContent;
             
+            let html = generateExcelHTML(formData, formId);
+
+            // Save to Supabase
+            try {
+                const { error } = await supabaseClient
+                    .from('ifa_forms')
+                    .upsert({
+                        form_id: formId + '_excel',
+                        payload: {
+                            excelContent: html,
+                            type: 'excel',
+                            parentFormId: formId,
+                            exportDate: new Date().toISOString()
+                        },
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: 'form_id'
+                    });
+
+                if (error) {
+                    console.error('Error saving Excel to Supabase:', error);
+                }
+                console.log('Excel export saved to database');
+            } catch (error) {
+                console.error('Error saving Excel to Supabase:', error);
+            }
+            
+            downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
+        }
+
+        function exportToExcelLocally() {
+            const formData = collectAllFormData();
+            const formId = document.getElementById('formUniqueId').textContent;
+            const html = generateExcelHTML(formData, formId);
+            downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
+        }
+
+        function generateExcelHTML(formData, formId) {
             let html = `
                 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
                 <head>
@@ -3196,30 +3547,7 @@ async function exportToExcel() {
             }
             
             html += '</body></html>';
-
-            // Save to Supabase
-            try {
-                const { error } = await window.supabase
-                    .from('ifa_forms')
-                    .upsert({
-                        form_id: formId + '_excel',
-                        payload: {
-                            excelContent: html,
-                            type: 'excel',
-                            parentFormId: formId,
-                            exportDate: new Date().toISOString()
-                        }
-                    }, {
-                        onConflict: 'form_id'
-                    });
-
-                if (error) throw error;
-                console.log('Excel export saved to database');
-            } catch (error) {
-                console.error('Error saving Excel to Supabase:', error);
-            }
-            
-            downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
+            return html;
         }
 
         // Generate Suitability Report for Client
@@ -3235,6 +3563,44 @@ async function exportToExcel() {
 
             // Collect all data
             const formId = document.getElementById('formUniqueId').textContent;
+            const reportHTML = generateReportHTML(formId);
+            
+            // Open report in new window
+            const reportWindow = window.open('', '_blank');
+            reportWindow.document.write(reportHTML);
+            reportWindow.document.close();
+
+            // Save report to Supabase if available
+            if (supabaseClient) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('ifa_forms')
+                        .upsert({
+                            form_id: formId + '_report',
+                            payload: {
+                                reportHTML: reportHTML,
+                                type: 'suitability_report',
+                                parentFormId: formId,
+                                clientName: `${document.getElementById('title').value} ${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
+                                generatedDate: new Date().toISOString()
+                            },
+                            updated_at: new Date().toISOString()
+                        }, {
+                            onConflict: 'form_id'
+                        });
+
+                    if (error) {
+                        console.error('Error saving report to Supabase:', error);
+                    } else {
+                        console.log('Suitability report saved to database');
+                    }
+                } catch (error) {
+                    console.error('Error saving report to Supabase:', error);
+                }
+            }
+        }
+
+        function generateReportHTML(formId) {
             const currentDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
             
             // Client details
@@ -3272,8 +3638,7 @@ async function exportToExcel() {
             const totalOngoingCharges = document.getElementById('totalOngoingCharges').value;
             
             // Generate report HTML
-            const reportWindow = window.open('', '_blank');
-            reportWindow.document.write(`
+            return `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -3584,31 +3949,7 @@ async function exportToExcel() {
                     </div>
                 </body>
                 </html>
-            `);
-            // Save report to Supabase
-            try {
-                const { error } = await window.supabase
-                    .from('ifa_forms')
-                    .upsert({
-                        form_id: formId + '_report',
-                        payload: {
-                            reportHTML: reportHTML,
-                            type: 'suitability_report',
-                            parentFormId: formId,
-                            clientName: clientName,
-                            generatedDate: new Date().toISOString()
-                        }
-                    }, {
-                        onConflict: 'form_id'
-                    });
-
-                if (error) throw error;
-                console.log('Suitability report saved to database');
-            } catch (error) {
-                console.error('Error saving report to Supabase:', error);
-            }
-
-            reportWindow.document.close();
+            `;
         }
 
         function collectAllFormData() {
@@ -3645,15 +3986,6 @@ async function exportToExcel() {
         function printForm() {
             window.print();
         }
-</script>
-</body>
-<!-- Supabase Integration -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
-    
-    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-</script>
+    </script>
 </body>
 </html>
