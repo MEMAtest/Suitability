@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -627,6 +627,43 @@
                 right: 10px;
             }
         }
+
+/* Modal styles for load form dialog */
+        .modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .modal-table th {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .modal-table td {
+            padding: 8px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .modal-table tr:hover {
+            background-color: var(--light-blue);
+        }
+
+        .modal-table button {
+            padding: 5px 15px;
+            background-color: var(--secondary-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal-table button:hover {
+            background-color: var(--primary-blue);
+        }
+
     </style>
 </head>
 <body>
@@ -656,6 +693,7 @@
     <div class="container">
         <div class="form-controls">
             <button class="btn btn-primary" onclick="saveForm()">💾 Save Form</button>
+            <button class="btn btn-primary" onclick="loadSavedForms()">📁 Load Saved Form</button>
             <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
             <button class="btn btn-success" onclick="generateSuitabilityReport()">📄 Generate Client Report</button>
             <button class="btn btn-warning" onclick="printForm()">🖨️ Print</button>
@@ -2581,7 +2619,7 @@
         }
 
         // Save and load functions
-        function saveForm() {
+        async function saveForm() {
             // Validate form first
             const form = document.getElementById('suitabilityForm');
             if (!form.checkValidity()) {
@@ -2619,16 +2657,39 @@
             data.formId = formId;
             data.savedDate = new Date().toISOString();
 
-            // Save to localStorage
-            localStorage.setItem(formId, JSON.stringify(data));
-            
-            // Show save indicator
-            showSaveIndicator();
-            
-            alert(`Form saved successfully!\nForm ID: ${formId}`);
+            // Save to Supabase
+            try {
+                const { data: savedForm, error } = await window.supabase
+                    .from('ifa_forms')
+                    .upsert({
+                        form_id: formId,
+                        payload: {
+                            formData: data,
+                            type: 'form'
+                        }
+                    }, {
+                        onConflict: 'form_id'
+                    });
+
+                if (error) throw error;
+
+                // Also save to localStorage as backup
+                localStorage.setItem(formId, JSON.stringify(data));
+                
+                // Show save indicator
+                showSaveIndicator();
+                
+                alert(`Form saved successfully to database!\nForm ID: ${formId}`);
+            } catch (error) {
+                console.error('Error saving to Supabase:', error);
+                // Fallback to localStorage
+                localStorage.setItem(formId, JSON.stringify(data));
+                showSaveIndicator('Form saved locally (database error)');
+                alert(`Form saved locally. Database error: ${error.message}`);
+            }
         }
 
-        function autoSave() {
+        async function autoSave() {
             const formData = new FormData(document.getElementById('suitabilityForm'));
             const data = {};
             
@@ -2651,8 +2712,161 @@
             };
 
             data.formId = document.getElementById('formUniqueId').textContent;
+            data.savedDate = new Date().toISOString();
 
+            // Save to localStorage first
             localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
+
+            // Try to save to Supabase (silently in background)
+            try {
+                await window.supabase
+                    .from('ifa_forms')
+                    .upsert({
+                        form_id: data.formId,
+                        payload: {
+                            formData: data,
+                            type: 'autosave'
+                        }
+                    }, {
+                        onConflict: 'form_id'
+                    });
+            } catch (error) {
+                console.error('AutoSave to Supabase failed:', error);
+            }
+        }
+
+
+async function loadSavedForms() {
+            try {
+                // Get all forms from Supabase
+                const { data: forms, error } = await window.supabase
+                    .from('ifa_forms')
+                    .select('form_id, payload, created_at')
+                    .eq('payload->type', 'form')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (!forms || forms.length === 0) {
+                    alert('No saved forms found in database.');
+                    return;
+                }
+
+                // Create a selection dialog
+                let html = '<h3>Select a form to load:</h3><table class="modal-table">';
+                html += '<tr><th>Form ID</th><th>Client Name</th><th>Date Saved</th><th>Action</th></tr>';
+                
+                forms.forEach(form => {
+                    const formData = form.payload.formData;
+                    const clientName = `${formData.title || ''} ${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Unknown';
+                    const savedDate = new Date(form.created_at).toLocaleString();
+                    
+                    html += `<tr>`;
+                    html += `<td>${form.form_id}</td>`;
+                    html += `<td>${clientName}</td>`;
+                    html += `<td>${savedDate}</td>`;
+                    html += `<td><button onclick="loadFormById('${form.form_id}')">Load</button></td>`;
+                    html += `</tr>`;
+                });
+                
+                html += '</table>';
+
+                // Create modal
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: white;
+                    padding: 20px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    min-width: 500px;
+                `;
+                modal.innerHTML = html + '<button onclick="this.parentElement.remove()" style="margin-top: 20px;">Close</button>';
+                
+                document.body.appendChild(modal);
+                
+                // Make loadFormById available globally
+                window.loadFormById = loadFormById;
+                
+            } catch (error) {
+                console.error('Error loading forms:', error);
+                alert('Error loading forms from database: ' + error.message);
+            }
+        }
+
+        async function loadFormById(formId) {
+            try {
+                // Get the form from Supabase
+                const { data: form, error } = await window.supabase
+                    .from('ifa_forms')
+                    .select('payload')
+                    .eq('form_id', formId)
+                    .single();
+
+                if (error) throw error;
+
+                const data = form.payload.formData;
+                
+                // Clear current form first
+                if (confirm('This will replace the current form data. Continue?')) {
+                    document.getElementById('suitabilityForm').reset();
+                    
+                    // Load form ID
+                    if (data.formId) {
+                        document.getElementById('formUniqueId').textContent = data.formId;
+                    }
+                    
+                    // Load all form fields
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'tables' && key !== 'formId') {
+                            const elements = document.getElementsByName(key);
+                            if (elements.length > 0) {
+                                if (elements[0].type === 'checkbox' || elements[0].type === 'radio') {
+                                    elements.forEach(element => {
+                                        if (Array.isArray(data[key])) {
+                                            element.checked = data[key].includes(element.value);
+                                        } else {
+                                            element.checked = element.value === data[key];
+                                        }
+                                    });
+                                } else {
+                                    elements[0].value = data[key] || '';
+                                }
+                            }
+                        }
+                    });
+
+                    // Load table data
+                    if (data.tables) {
+                        restoreTableData('assetsTableBody', data.tables.assets);
+                        restoreTableData('liabilitiesTableBody', data.tables.liabilities);
+                        restoreTableData('pensionTableBody', data.tables.pensions);
+                        restoreTableData('experienceTableBody', data.tables.experience);
+                    }
+
+                    // Update calculations and UI
+                    calculateTotals();
+                    calculateRetirement();
+                    updateProgress();
+                    checkVulnerabilities();
+                    toggleKnowledgeNotes();
+                    
+                    // Close modal
+                    const modal = document.querySelector('div[style*="position: fixed"]');
+                    if (modal) modal.remove();
+                    
+                    alert('Form loaded successfully!');
+                }
+            } catch (error) {
+                console.error('Error loading form:', error);
+                alert('Error loading form: ' + error.message);
+            }
         }
 
         function loadAutoSave() {
@@ -2867,7 +3081,7 @@
         }
 
         // Export to Excel function
-        function exportToExcel() {
+async function exportToExcel() {
             const formData = collectAllFormData();
             const formId = document.getElementById('formUniqueId').textContent;
             
@@ -2971,12 +3185,34 @@
             }
             
             html += '</body></html>';
+
+            // Save to Supabase
+            try {
+                const { error } = await window.supabase
+                    .from('ifa_forms')
+                    .upsert({
+                        form_id: formId + '_excel',
+                        payload: {
+                            excelContent: html,
+                            type: 'excel',
+                            parentFormId: formId,
+                            exportDate: new Date().toISOString()
+                        }
+                    }, {
+                        onConflict: 'form_id'
+                    });
+
+                if (error) throw error;
+                console.log('Excel export saved to database');
+            } catch (error) {
+                console.error('Error saving Excel to Supabase:', error);
+            }
             
             downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
-        }
+             }
 
         // Generate Suitability Report for Client
-        function generateSuitabilityReport() {
+        async function generateSuitabilityReport() {
             // Validate form first
             const form = document.getElementById('suitabilityForm');
             if (!form.checkValidity()) {
@@ -3338,7 +3574,29 @@
                 </body>
                 </html>
             `);
-            
+            // Save report to Supabase
+            try {
+                const { error } = await window.supabase
+                    .from('ifa_forms')
+                    .upsert({
+                        form_id: formId + '_report',
+                        payload: {
+                            reportHTML: reportHTML,
+                            type: 'suitability_report',
+                            parentFormId: formId,
+                            clientName: clientName,
+                            generatedDate: new Date().toISOString()
+                        }
+                    }, {
+                        onConflict: 'form_id'
+                    });
+
+                if (error) throw error;
+                console.log('Suitability report saved to database');
+            } catch (error) {
+                console.error('Error saving report to Supabase:', error);
+            }
+
             reportWindow.document.close();
         }
 
@@ -3376,17 +3634,6 @@
         function printForm() {
             window.print();
         }
-    </script> <!-- Load Supabase v2 client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Instantiate the client -->
-<script>
-  const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
-  /*  ⬇️  Paste the **full** anon public key — it is ~200 characters long.  */
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
-
-  window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
-
 </body>
 </html>
