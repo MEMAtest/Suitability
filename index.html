@@ -2620,6 +2620,9 @@
 
         // Save and load functions
         async function saveForm() {
+            console.log('SaveForm function started');
+            console.log('Is window.supabase available?', !!window.supabase);
+            
             // Validate form first
             const form = document.getElementById('suitabilityForm');
             if (!form.checkValidity()) {
@@ -2657,8 +2660,17 @@
             data.formId = formId;
             data.savedDate = new Date().toISOString();
 
+            console.log('About to save to Supabase with:', {
+                form_id: formId,
+                payload: { formData: data, type: 'form' }
+            });
+
             // Save to Supabase
             try {
+                if (!window.supabase) {
+                    throw new Error('Supabase client not initialized');
+                }
+
                 const { data: savedForm, error } = await window.supabase
                     .from('ifa_forms')
                     .upsert({
@@ -2670,6 +2682,8 @@
                     }, {
                         onConflict: 'form_id'
                     });
+
+                console.log('Supabase response:', { savedForm, error });
 
                 if (error) throw error;
 
@@ -2688,8 +2702,7 @@
                 alert(`Form saved locally. Database error: ${error.message}`);
             }
         }
-
-        async function autoSave() {
+   async function autoSave() {
             const formData = new FormData(document.getElementById('suitabilityForm'));
             const data = {};
             
@@ -2735,8 +2748,7 @@
             }
         }
 
-
-async function loadSavedForms() {
+ async function loadSavedForms() {
             try {
                 // Get all forms from Supabase
                 const { data: forms, error } = await window.supabase
@@ -2868,7 +2880,6 @@ async function loadSavedForms() {
                 alert('Error loading form: ' + error.message);
             }
         }
-
         function loadAutoSave() {
             const savedData = localStorage.getItem('IFA_Form_AutoSave');
             if (!savedData) return;
@@ -3209,7 +3220,7 @@ async function exportToExcel() {
             }
             
             downloadFile(html, `IFA_Assessment_${formId}.xls`, 'application/vnd.ms-excel');
-             }
+        }
 
         // Generate Suitability Report for Client
         async function generateSuitabilityReport() {
