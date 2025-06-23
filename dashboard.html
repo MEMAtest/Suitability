@@ -146,21 +146,19 @@
         <div class="section">
             <h2>Analytics</h2>
             <div class="chart-container">
-                <div>
-                    <h3>Advice Type Distribution</h3>
-                    <canvas id="adviceTypeChart"></canvas>
-                </div>
-                <div>
-                    <h3>Risk Profile Distribution</h3>
-                    <canvas id="riskProfileChart"></canvas>
-                </div>
-                 <div>
-                    <h3>Submissions Over Time</h3>
-                    <canvas id="submissionsTimelineChart"></canvas>
-                </div>
-            </div>
-        </div>
+    <div>
+        <h3>Advice Type Distribution</h3>
+        <canvas id="adviceTypeChart"></canvas>
     </div>
+    <div>
+        <h3>Risk Profile Distribution</h3>
+        <canvas id="riskProfileChart"></canvas>
+    </div>
+     <div>
+         <h3>Asset Type Distribution</h3>
+         <canvas id="assetTypeChart"></canvas>
+     </div>
+</div>
 
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
@@ -263,93 +261,97 @@
         }
 
         // Function to render all charts
-        function renderCharts(forms) {
-            renderAdviceTypeChart(forms);
-            renderRiskProfileChart(forms);
-            renderSubmissionsTimeline(forms);
+function renderCharts(forms) {
+    renderAdviceTypeChart(forms);
+    renderRiskProfileChart(forms);
+    renderAssetTypeChart(forms); // Replaced the old chart function
+}
+
+// Chart 1: Advice Type Distribution (No changes needed)
+function renderAdviceTypeChart(forms) {
+    const ctx = document.getElementById('adviceTypeChart').getContext('2d');
+    const adviceCounts = {};
+
+    forms.forEach(form => {
+        const type = form.payload.formData.adviceType || 'Unknown';
+        adviceCounts[type] = (adviceCounts[type] || 0) + 1;
+    });
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(adviceCounts),
+            datasets: [{
+                label: 'Advice Type',
+                data: Object.values(adviceCounts),
+                backgroundColor: ['#4472C4', '#5B9BD5', '#84B5E3', '#A5C9E8', '#C9DDF2'],
+                hoverOffset: 4
+            }]
         }
+    });
+}
 
-        // Chart 1: Advice Type Distribution
-        function renderAdviceTypeChart(forms) {
-            const ctx = document.getElementById('adviceTypeChart').getContext('2d');
-            const adviceCounts = {};
+// Chart 2: Risk Profile Distribution (No changes needed)
+function renderRiskProfileChart(forms) {
+    const ctx = document.getElementById('riskProfileChart').getContext('2d');
+    const riskCounts = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0 };
 
-            forms.forEach(form => {
-                const type = form.payload.formData.adviceType || 'Unknown';
-                adviceCounts[type] = (adviceCounts[type] || 0) + 1;
-            });
+    forms.forEach(form => {
+        const risk = form.payload.formData.riskCategory;
+        if (risk && riskCounts.hasOwnProperty(risk)) {
+            riskCounts[risk]++;
+        }
+    });
 
-            new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(adviceCounts),
-                    datasets: [{
-                        label: 'Advice Type',
-                        data: Object.values(adviceCounts),
-                        backgroundColor: ['#4472C4', '#5B9BD5', '#84B5E3', '#A5C9E8', '#C9DDF2'],
-                        hoverOffset: 4
-                    }]
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['1-VL', '2-L', '3-LM', '4-M', '5-MH', '6-H', '7-VH'],
+            datasets: [{
+                label: 'Number of Clients',
+                data: Object.values(riskCounts),
+                backgroundColor: '#28A745'
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// ** NEW CHART FUNCTION **
+// Chart 3: Asset Type Distribution
+function renderAssetTypeChart(forms) {
+    const ctx = document.getElementById('assetTypeChart').getContext('2d');
+    const assetTotals = {};
+
+    forms.forEach(form => {
+        const assets = form.payload.formData.tables?.assets;
+        if (assets) {
+            assets.forEach(assetRow => {
+                const type = assetRow.find(d => d.name === 'asset_type[]')?.value;
+                const value = parseFloat(assetRow.find(d => d.name === 'asset_value[]')?.value || 0);
+
+                if (type && value > 0) {
+                    assetTotals[type] = (assetTotals[type] || 0) + value;
                 }
             });
         }
+    });
 
-        // Chart 2: Risk Profile Distribution
-        function renderRiskProfileChart(forms) {
-            const ctx = document.getElementById('riskProfileChart').getContext('2d');
-            const riskCounts = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0 };
-
-            forms.forEach(form => {
-                const risk = form.payload.formData.riskCategory;
-                if (risk && riskCounts.hasOwnProperty(risk)) {
-                    riskCounts[risk]++;
-                }
-            });
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['1-VL', '2-L', '3-LM', '4-M', '5-MH', '6-H', '7-VH'],
-                    datasets: [{
-                        label: 'Number of Clients',
-                        data: Object.values(riskCounts),
-                        backgroundColor: '#28A745'
-                    }]
-                },
-                options: {
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                    plugins: { legend: { display: false } }
-                }
-            });
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(assetTotals),
+            datasets: [{
+                label: 'Total Value',
+                data: Object.values(assetTotals),
+                backgroundColor: ['#FFC107', '#DC3545', '#003366', '#28A745', '#4472C4', '#6c757d'],
+            }]
         }
-        
-        // Chart 3: Submissions over time
-        function renderSubmissionsTimeline(forms) {
-            const ctx = document.getElementById('submissionsTimelineChart').getContext('2d');
-            const submissionsByDate = {};
-
-            forms.forEach(form => {
-                const date = new Date(form.created_at).toISOString().split('T')[0];
-                submissionsByDate[date] = (submissionsByDate[date] || 0) + 1;
-            });
-
-            const sortedDates = Object.keys(submissionsByDate).sort();
-            const labels = sortedDates;
-            const data = sortedDates.map(date => submissionsByDate[date]);
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Submissions per Day',
-                        data: data,
-                        borderColor: '#003366',
-                        fill: false,
-                        tension: 0.1
-                    }]
-                }
-            });
-        }
+    });
+}
 
         // Load data when the page is ready
         document.addEventListener('DOMContentLoaded', loadDashboardData);
