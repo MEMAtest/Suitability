@@ -2839,55 +2839,58 @@
         }
 
         // Save and load functions with proper Supabase integration
-        async function saveForm() {
-            console.log('SaveForm function started');
-            
-            // Check database connection
-            if (!supabaseClient) {
-                console.error('Supabase client not initialized');
-                alert('Database connection not available. Form will be saved locally.');
-                saveToLocalStorageOnly();
-                return;
-            }
-            
-            // Validate form first
-            const form = document.getElementById('suitabilityForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                updateValidationSummary();
-                alert('Please correct the validation errors before saving.');
-                return;
-            }
-            
-            const formData = new FormData(document.getElementById('suitabilityForm'));
-            const data = {};
-            
-            // Get all form inputs
-            for (let [key, value] of formData.entries()) {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) {
-                        data[key] = [data[key]];
-                    }
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            }
+async function saveForm() {
+    console.log('SaveForm function started');
 
-            // Add table data
-            data.tables = {
-                assets: getTableData('assetsTableBody'),
-                liabilities: getTableData('liabilitiesTableBody'),
-                pensions: getTableData('pensionTableBody'),
-                experience: getTableData('experienceTableBody')
-            };
+    // Check database connection
+    if (!supabaseClient) {
+        console.error('Supabase client not initialized');
+        alert('Database connection not available. Form will be saved locally.');
+        saveToLocalStorageOnly();
+        return;
+    }
 
-            // Use existing form ID
-            const formId = document.getElementById('formUniqueId').textContent;
-            data.formId = formId;
-            data.savedDate = new Date().toISOString();
+    // Validate form first
+    const form = document.getElementById('suitabilityForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        updateValidationSummary();
+        alert('Please correct the validation errors before saving.');
+        return;
+    }
 
-            console.log('Attempting to save to Supabase with form_id:', formId);
+    const formData = new FormData(document.getElementById('suitabilityForm'));
+    const data = {};
+
+    // Get all form inputs
+    for (let [key, value] of formData.entries()) {
+        if (data[key]) {
+            if (!Array.isArray(data[key])) {
+                data[key] = [data[key]];
+            }
+            data[key].push(value);
+        } else {
+            data[key] = value;
+        }
+    }
+
+    // Add this line to store the completion progress
+    data.completionPercentage = document.getElementById('progressFill').textContent; // <-- THIS IS THE NEW LINE
+
+    // Add table data
+    data.tables = {
+        assets: getTableData('assetsTableBody'),
+        liabilities: getTableData('liabilitiesTableBody'),
+        pensions: getTableData('pensionTableBody'),
+        experience: getTableData('experienceTableBody')
+    };
+
+    // Use existing form ID
+    const formId = document.getElementById('formUniqueId').textContent;
+    data.formId = formId;
+    data.savedDate = new Date().toISOString();
+
+    console.log('Attempting to save to Supabase with form_id:', formId);
 
             // Save to Supabase
             try {
@@ -2972,37 +2975,41 @@
         }
 
         async function autoSave() {
-            if (!supabaseClient) {
-                console.log('Supabase not available for autosave');
-                return;
+    if (!supabaseClient) {
+        console.log('Supabase not available for autosave');
+        return;
+    }
+
+    const formData = new FormData(document.getElementById('suitabilityForm'));
+    const data = {};
+
+    for (let [key, value] of formData.entries()) {
+        if (data[key]) {
+            if (!Array.isArray(data[key])) {
+                data[key] = [data[key]];
             }
+            data[key].push(value);
+        } else {
+            data[key] = value;
+        }
+    }
 
-            const formData = new FormData(document.getElementById('suitabilityForm'));
-            const data = {};
-            
-            for (let [key, value] of formData.entries()) {
-                if (data[key]) {
-                    if (!Array.isArray(data[key])) {
-                        data[key] = [data[key]];
-                    }
-                    data[key].push(value);
-                } else {
-                    data[key] = value;
-                }
-            }
+    // Add this line to store the completion progress
+    data.completionPercentage = document.getElementById('progressFill').textContent; // <-- THIS IS THE NEW LINE
 
-            data.tables = {
-                assets: getTableData('assetsTableBody'),
-                liabilities: getTableData('liabilitiesTableBody'),
-                pensions: getTableData('pensionTableBody'),
-                experience: getTableData('experienceTableBody')
-            };
+    data.tables = {
+        assets: getTableData('assetsTableBody'),
+        liabilities: getTableData('liabilitiesTableBody'),
+        pensions: getTableData('pensionTableBody'),
+        experience: getTableData('experienceTableBody')
+    };
 
-            data.formId = document.getElementById('formUniqueId').textContent;
-            data.savedDate = new Date().toISOString();
+    data.formId = document.getElementById('formUniqueId').textContent;
+    data.savedDate = new Date().toISOString();
 
-            // Save to localStorage first
-            localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
+    // Save to localStorage first
+    localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
+
 
             // Try to save to Supabase (silently in background)
             try {
