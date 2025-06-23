@@ -1,5 +1,11 @@
-<!DOCTYPE html>
+New code (view0form)
+
+
+
+
+ <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +26,7 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--gray-dark); }
         input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="tel"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--gray-light); border-radius: 4px; font-size: 14px; }
-        input:disabled, select:disabled, textarea:disabled { background-color: #f8f9fa; color: #555; cursor: not-allowed; border-color: #dee2e6; }
+        input:disabled, select:disabled, textarea:disabled { background-color: #f8f9fa; color: #555; cursor: not-allowed; border-color: #dee2e6; opacity: 1 !important; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .checkbox-group, .radio-group { display: flex; flex-direction: column; gap: 10px; }
         .checkbox-item, .radio-item { display: flex; align-items: center; gap: 8px; }
@@ -28,11 +34,13 @@
         table { width: 100%; border-collapse: collapse; }
         th { background-color: var(--light-blue); color: var(--primary-blue); padding: 12px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid var(--gray-light); }
-        #suitabilityForm { pointer-events: none; } /* Disables clicks on the form area */
-        .form-controls a.btn { pointer-events: auto; } /* Re-enables clicks on buttons in the controls area */
+        .section-header, .add-row-btn, .remove-btn { pointer-events: none; }
+        .form-controls a.btn, .form-controls button { pointer-events: auto; }
     </style>
 </head>
+
 <body>
+
     <header>
         <div class="container">
             <h1 id="viewFormHeader">Viewing Form...</h1>
@@ -41,129 +49,1343 @@
 
     <div class="container">
         <div class="form-controls">
-            <a href="/index.html" class="btn btn-warning">⬅️ Back to Main Form</a>
+            <a href="/index.html" class="btn btn-warning" style="background-color: #6c757d; color: white;">⬅️ Back to Main Form</a>
             <button class="btn btn-warning" onclick="window.print()">🖨️ Print</button>
         </div>
 
-        <form id="suitabilityForm">
-             </form>
-    </div>
+        
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // This improved function populates all fields, including complex ones
-        function populateForm(formData) {
-            for (const key in formData) {
-                if (key === 'tables') continue; // Skip the tables object, it's handled separately
-
-                const elements = document.getElementsByName(key);
-                if (elements.length === 0) continue;
-
-                const fieldType = elements[0].type;
-                const value = formData[key];
-
-                if (fieldType === 'checkbox' || fieldType === 'radio') {
-                    const values = Array.isArray(value) ? value : [value];
-                    elements.forEach(el => {
-                        if (values.includes(el.value)) {
-                            el.checked = true;
-                        }
-                    });
-                } else if (elements.length > 1) { // Handle fields with multiple inputs like in tables
-                     const values = Array.isArray(value) ? value : [value];
-                     elements.forEach((el, index) => {
-                         if (values[index]) {
-                             el.value = values[index];
-                         }
-                     });
-                } else { // Handle single fields (text, select, textarea, etc.)
-                    elements[0].value = value;
-                }
-            }
-        }
-
-        // This improved function rebuilds the tables with the saved data
-        function restoreTables(tablesData) {
-            if (!tablesData) return;
-            
-            for (const tableName in tablesData) {
-                const tableBodyId = `${tableName.slice(0, -1)}TableBody`; // e.g., 'assets' -> 'assetTableBody'
-                const tbody = document.getElementById(tableBodyId);
-                if (!tbody) continue;
-                
-                tbody.innerHTML = ''; // Clear any placeholder rows
-                const tableRowsData = tablesData[tableName];
-
-                tableRowsData.forEach(rowData => {
-                    const newRow = tbody.insertRow();
-                    const templateRow = tbody.closest('table').querySelector('thead tr');
+   <form id="suitabilityForm">
+            <!-- Section 1: Client Details & Objectives -->
+            <div class="section" id="section1">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status1"></span>
+                        1. Client Details & Objectives
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Capture complete client information including personal details, advice scope, and financial objectives. Ensure all mandatory fields are completed for FCA compliance. Verify client identity documents match the information provided.
+                    </div>
                     
-                    // Create a disabled input/select for each cell based on the form's structure
-                    rowData.forEach(cellData => {
-                        const cell = newRow.insertCell();
-                        const input = document.createElement(cellData.type === 'select-one' ? 'select' : 'input');
-                        input.type = cellData.type;
-                        input.value = cellData.value;
-                        input.disabled = true;
-                        input.style.backgroundColor = '#fdfdfd';
-                        input.style.color = '#333';
-                        input.style.border = '1px solid #eee';
+                    <h3>Personal Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientRef" class="required">Client Reference</label>
+                            <input type="text" id="clientRef" name="clientRef" required pattern="[A-Za-z0-9-]+" title="Letters, numbers and hyphens only">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="title" class="required">Title</label>
+                            <select id="title" name="title" required>
+                                <option value="">Select Title</option>
+                                <option value="Mr">Mr</option>
+                                <option value="Mrs">Mrs</option>
+                                <option value="Miss">Miss</option>
+                                <option value="Ms">Ms</option>
+                                <option value="Dr">Dr</option>
+                                <option value="Prof">Prof</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" class="required">First Name</label>
+                            <input type="text" id="firstName" name="firstName" required pattern="[A-Za-z\s-']+" title="Letters only">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName" class="required">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" required pattern="[A-Za-z\s-']+" title="Letters only">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dob" class="required">Date of Birth</label>
+                            <input type="date" id="dob" name="dob" required max="" onchange="calculateRetirement()">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="niNumber">NI Number</label>
+                            <input type="text" id="niNumber" name="niNumber" pattern="[A-Za-z]{2}[0-9]{6}[A-Za-z]" placeholder="AB123456C" title="Format: AB123456C" style="text-transform: uppercase;">
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="client@example.com">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" pattern="[0-9+\s()-]+" placeholder="+44 20 1234 5678">
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="taxResidency" class="required">Tax Residency</label>
+                            <select id="taxResidency" name="taxResidency" required>
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="employmentStatus" class="required">Employment Status</label>
+                            <select id="employmentStatus" name="employmentStatus" required>
+                                <option value="">Select Status</option>
+                                <option value="Employed">Employed</option>
+                                <option value="Self-Employed">Self-Employed</option>
+                                <option value="Retired">Retired</option>
+                                <option value="Unemployed">Unemployed</option>
+                                <option value="Student">Student</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressLine1" class="required">Address Line 1</label>
+                        <input type="text" id="addressLine1" name="addressLine1" required>
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="addressLine2">Address Line 2</label>
+                            <input type="text" id="addressLine2" name="addressLine2">
+                        </div>
+                        <div class="form-group">
+                            <label for="city" class="required">City/Town</label>
+                            <input type="text" id="city" name="city" required>
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="county">County</label>
+                            <input type="text" id="county" name="county">
+                        </div>
+                        <div class="form-group">
+                            <label for="postcode" class="required">Postcode</label>
+                            <input type="text" id="postcode" name="postcode" required pattern="[A-Za-z]{1,2}[0-9Rr][0-9A-Za-z]? ?[0-9][A-Za-z]{2}" title="Enter a valid UK postcode" style="text-transform: uppercase;">
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
 
-                        if(cellData.type === 'select-one') {
-                            const option = document.createElement('option');
-                            option.value = cellData.value;
-                            option.textContent = cellData.value;
-                            input.appendChild(option);
-                        }
-                        
-                        cell.appendChild(input);
-                    });
+                    <h3 style="margin-top: 30px;">Advice Scope</h3>
+                    <div class="form-group">
+                        <label for="adviceType" class="required">Advice Type</label>
+                        <select id="adviceType" name="adviceType" required>
+                            <option value="">Select Type</option>
+                            <option value="Full">Full Financial Planning</option>
+                            <option value="Investment">Investment Only</option>
+                            <option value="Pension">Pension Only</option>
+                            <option value="Protection">Protection Only</option>
+                            <option value="Mortgage">Mortgage Only</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Areas of Advice
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-content">Select all areas relevant to this advice</span>
+                            </span>
+                        </label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_investment" name="adviceAreas" value="Investment">
+                                <label for="area_investment">Investment Planning</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_pension" name="adviceAreas" value="Pension">
+                                <label for="area_pension">Pension Planning</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_retirement" name="adviceAreas" value="Retirement">
+                                <label for="area_retirement">Retirement Income</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_protection" name="adviceAreas" value="Protection">
+                                <label for="area_protection">Protection</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_estate" name="adviceAreas" value="Estate">
+                                <label for="area_estate">Estate Planning</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Client Objectives</h3>
+                    <div class="form-group">
+                        <label for="primaryObjective" class="required">Primary Objective</label>
+                        <textarea id="primaryObjective" name="primaryObjective" rows="3" required placeholder="Describe the client's main financial goal..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="secondaryObjectives">Secondary Objectives</label>
+                        <textarea id="secondaryObjectives" name="secondaryObjectives" rows="3" placeholder="List any additional financial goals..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="timeHorizon" class="required">Time Horizon</label>
+                            <select id="timeHorizon" name="timeHorizon" required>
+                                <option value="">Select Time Horizon</option>
+                                <option value="Short">Short Term (0-3 years)</option>
+                                <option value="Medium">Medium Term (3-7 years)</option>
+                                <option value="Long">Long Term (7+ years)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="incomeRequirement">Income Requirement (£ per annum)</label>
+                            <input type="number" id="incomeRequirement" name="incomeRequirement" min="0" step="1" placeholder="£20,000-60,000">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Financial Assessment -->
+            <div class="section" id="section2">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status2"></span>
+                        2. Financial Assessment
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Complete a thorough financial assessment including all income sources, expenditure, assets, and liabilities. Ensure accuracy as this forms the basis for affordability assessments and recommendations. Include all pension arrangements for retirement planning.
+                    </div>
+                    
+                    <h3>Income Analysis</h3>
+                    <div class="table-container">
+                        <table id="incomeTable">
+                            <thead>
+                                <tr>
+                                    <th>Income Source</th>
+                                    <th>Current Annual (£)</th>
+                                    <th>Expected Change (£)</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Employment Income</td>
+                                    <td><input type="number" name="income_employment_current" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£20,000-100,000"></td>
+                                    <td><input type="number" name="income_employment_expected" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()"></td>
+                                    <td><input type="text" name="income_employment_notes" oninput="updateProgress()"></td>
+                                </tr>
+                                <tr>
+                                    <td>Self-Employment Income</td>
+                                    <td><input type="number" name="income_self_current" min="0" step="1" onchange="calculateTotals()" placeholder="£15,000-80,000"></td>
+                                    <td><input type="number" name="income_self_expected" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="income_self_notes"></td>
+                                </tr>
+                                <tr>
+                                    <td>Pension Income</td>
+                                    <td><input type="number" name="income_pension_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-50,000"></td>
+                                    <td><input type="number" name="income_pension_expected" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="income_pension_notes"></td>
+                                </tr>
+                                <tr>
+                                    <td>Investment Income</td>
+                                    <td><input type="number" name="income_investment_current" min="0" step="1" onchange="calculateTotals()" placeholder="£1,000-30,000"></td>
+                                    <td><input type="number" name="income_investment_expected" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="income_investment_notes"></td>
+                                </tr>
+                                <tr>
+                                    <td>Rental Income</td>
+                                    <td><input type="number" name="income_rental_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-25,000"></td>
+                                    <td><input type="number" name="income_rental_expected" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="income_rental_notes"></td>
+                                </tr>
+                                <tr>
+                                    <td>Other Income</td>
+                                    <td><input type="number" name="income_other_current" min="0" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="number" name="income_other_expected" step="1" onchange="calculateTotals()"></td>
+                                    <td><input type="text" name="income_other_notes"></td>
+                                </tr>
+                                <tr class="auto-calc">
+                                    <td><strong>Total Income</strong></td>
+                                    <td><strong id="totalIncomeCurrent">£0</strong></td>
+                                    <td><strong id="totalIncomeExpected">£0</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Expenditure Analysis</h3>
+                    <div class="table-container">
+                        <table id="expenditureTable">
+                            <thead>
+                                <tr>
+                                    <th>Expenditure Category</th>
+                                    <th>Monthly (£)</th>
+                                    <th>Annual (£)</th>
+                                    <th>Essential?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Mortgage/Rent</td>
+                                    <td><input type="number" name="exp_mortgage_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£500-3000"></td>
+                                    <td class="auto-calc"><span name="exp_mortgage_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_mortgage_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Utilities</td>
+                                    <td><input type="number" name="exp_utilities_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£100-300"></td>
+                                    <td class="auto-calc"><span name="exp_utilities_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_utilities_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Food & Groceries</td>
+                                    <td><input type="number" name="exp_food_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£200-600"></td>
+                                    <td class="auto-calc"><span name="exp_food_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_food_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Transport</td>
+                                    <td><input type="number" name="exp_transport_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£100-500"></td>
+                                    <td class="auto-calc"><span name="exp_transport_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_transport_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Insurance</td>
+                                    <td><input type="number" name="exp_insurance_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)" placeholder="£50-300"></td>
+                                    <td class="auto-calc"><span name="exp_insurance_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_insurance_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Healthcare</td>
+                                    <td><input type="number" name="exp_healthcare_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td class="auto-calc"><span name="exp_healthcare_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_healthcare_essential" checked></td>
+                                </tr>
+                                <tr>
+                                    <td>Entertainment</td>
+                                    <td><input type="number" name="exp_entertainment_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td class="auto-calc"><span name="exp_entertainment_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_entertainment_essential"></td>
+                                </tr>
+                                <tr>
+                                    <td>Holidays</td>
+                                    <td><input type="number" name="exp_holidays_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td class="auto-calc"><span name="exp_holidays_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_holidays_essential"></td>
+                                </tr>
+                                <tr>
+                                    <td>Other</td>
+                                    <td><input type="number" name="exp_other_monthly" min="0" step="1" onchange="calculateExpenditureAnnual(this)"></td>
+                                    <td class="auto-calc"><span name="exp_other_annual">£0</span></td>
+                                    <td><input type="checkbox" name="exp_other_essential"></td>
+                                </tr>
+                                <tr class="auto-calc">
+                                    <td><strong>Total Expenditure</strong></td>
+                                    <td><strong id="totalExpMonthly">£0</strong></td>
+                                    <td><strong id="totalExpAnnual">£0</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Assets & Liabilities</h3>
+                    <div class="table-container">
+                        <table id="assetsTable">
+                            <thead>
+                                <tr>
+                                    <th>Asset Type</th>
+                                    <th>Description</th>
+                                    <th>Value (£)</th>
+                                    <th>Ownership</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assetsTableBody">
+                                <tr>
+                                    <td>
+                                        <select name="asset_type[]" onchange="updateProgress()">
+                                            <option value="Property">Property</option>
+                                            <option value="Cash">Cash/Savings</option>
+                                            <option value="Investment">Investments</option>
+                                            <option value="Pension">Pension</option>
+                                            <option value="Business">Business</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="asset_description[]" placeholder="e.g., Main residence, ISA portfolio" oninput="updateProgress()"></td>
+                                    <td><input type="number" name="asset_value[]" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£150,000-500,000"></td>
+                                    <td>
+                                        <select name="asset_ownership[]" onchange="updateProgress()">
+                                            <option value="Sole">Sole</option>
+                                            <option value="Joint">Joint</option>
+                                            <option value="Trust">Trust</option>
+                                        </select>
+                                    </td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="auto-calc">
+                                    <td colspan="2"><strong>Total Assets</strong></td>
+                                    <td><strong id="totalAssets">£0</strong></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addAssetRow()">+ Add Asset</button>
+                    </div>
+
+                    <div class="table-container" style="margin-top: 30px;">
+                        <table id="liabilitiesTable">
+                            <thead>
+                                <tr>
+                                    <th>Liability Type</th>
+                                    <th>Description</th>
+                                    <th>Outstanding (£)</th>
+                                    <th>Monthly Payment (£)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liabilitiesTableBody">
+                                <tr>
+                                    <td>
+                                        <select name="liability_type[]">
+                                            <option value="Mortgage">Mortgage</option>
+                                            <option value="Loan">Personal Loan</option>
+                                            <option value="Credit Card">Credit Card</option>
+                                            <option value="Car Finance">Car Finance</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="liability_description[]" placeholder="e.g., Main home, Halifax"></td>
+                                    <td><input type="number" name="liability_outstanding[]" min="0" step="1" onchange="calculateTotals()" placeholder="£50,000-300,000"></td>
+                                    <td><input type="number" name="liability_payment[]" min="0" step="1" placeholder="£500-2000"></td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="auto-calc">
+                                    <td colspan="2"><strong>Total Liabilities</strong></td>
+                                    <td><strong id="totalLiabilities">£0</strong></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addLiabilityRow()">+ Add Liability</button>
+                    </div>
+
+                    <div class="summary-box">
+                        <h3>Financial Summary</h3>
+                        <div class="summary-item">
+                            <span>Net Worth (Assets - Liabilities):</span>
+                            <strong id="netWorth">£0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Annual Surplus/Deficit:</span>
+                            <strong id="annualSurplus">£0</strong>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Pension Arrangements</h3>
+                    <div class="table-container">
+                        <table id="pensionTable">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Type</th>
+                                    <th>Current Value (£)</th>
+                                    <th>Annual Contribution (£)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pensionTableBody">
+                                <tr>
+                                    <td><input type="text" name="pension_provider[]" placeholder="e.g., Aviva, Scottish Widows"></td>
+                                    <td>
+                                        <select name="pension_type[]">
+                                            <option value="DC">Defined Contribution</option>
+                                            <option value="DB">Defined Benefit</option>
+                                            <option value="SIPP">SIPP</option>
+                                            <option value="State">State Pension</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="pension_value[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£50,000-500,000"></td>
+                                    <td><input type="number" name="pension_contribution[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£3,000-40,000"></td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addPensionRow()">+ Add Pension</button>
+                    </div>
+
+                    <div class="retirement-calculation" id="retirementCalc">
+                        <h4>Retirement Planning Calculation</h4>
+                        <div class="summary-item">
+                            <span>Current Age:</span>
+                            <strong id="currentAge">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Years to State Pension Age (67):</span>
+                            <strong id="yearsToRetirement">-</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Pension Value:</span>
+                            <strong id="totalPensionValue">£0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Annual Contributions:</span>
+                            <strong id="totalPensionContributions">£0</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Projected Value at Retirement (4% growth):</span>
+                            <strong id="projectedPensionValue">£0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Retirement Income Strategy Assessment -->
+            <div class="section" id="section3">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status3"></span>
+                        3. Retirement Income Strategy Assessment
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Analyze retirement income needs and sustainability. Consider life expectancy, inflation, and withdrawal rates. The income gap analysis helps identify shortfalls between required and secure income sources.
+                    </div>
+                    
+                    <h3>Sustainable Income Analysis</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="retirementAge">Expected Retirement Age</label>
+                            <input type="number" id="retirementAge" name="retirementAge" min="50" max="75" step="1" placeholder="55-67">
+                        </div>
+                        <div class="form-group">
+                            <label for="lifeExpectancy">Life Expectancy Planning Age</label>
+                            <input type="number" id="lifeExpectancy" name="lifeExpectancy" min="70" max="100" step="1" value="90" placeholder="85-95">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="sustainableWithdrawalRate">Sustainable Withdrawal Rate (%)</label>
+                            <input type="number" id="sustainableWithdrawalRate" name="sustainableWithdrawalRate" min="0" max="10" step="0.1" value="3.5" placeholder="3-4%">
+                        </div>
+                        <div class="form-group">
+                            <label for="inflationAssumption">Inflation Assumption (%)</label>
+                            <input type="number" id="inflationAssumption" name="inflationAssumption" min="0" max="10" step="0.1" value="2.5" placeholder="2-3%">
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Income Gap Analysis</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="requiredIncome">Required Annual Income (£)</label>
+                            <input type="number" id="requiredIncome" name="requiredIncome" min="0" step="1" onchange="calculateIncomeGap()" placeholder="£20,000-60,000">
+                        </div>
+                        <div class="form-group">
+                            <label for="secureIncome">Secure Income (State/DB Pensions) (£)</label>
+                            <input type="number" id="secureIncome" name="secureIncome" min="0" step="1" onchange="calculateIncomeGap()" placeholder="£8,000-30,000">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Income Gap (£)</label>
+                        <input type="text" id="incomeGap" class="auto-calc" readonly value="£0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="incomeStrategy">Proposed Income Strategy</label>
+                        <textarea id="incomeStrategy" name="incomeStrategy" rows="5" placeholder="Describe the recommended approach to generating retirement income..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Risk Assessment -->
+            <div class="section" id="section4">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status4"></span>
+                        4. Risk Assessment
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Assess both attitude to risk and capacity for loss. These may differ - ensure any discrepancies are documented and reconciled. Emergency fund coverage helps determine capacity for loss.
+                    </div>
+                    
+                    <h3>Attitude to Risk</h3>
+                    <div class="form-group">
+                        <label for="riskProfilingTool">Risk Profiling Tool Used</label>
+                        <input type="text" id="riskProfilingTool" name="riskProfilingTool" placeholder="e.g., FinaMetrica, Oxford Risk">
+                    </div>
+                    <div class="form-group">
+                        <label for="riskCategory" class="required">Risk Category (1-7)</label>
+                        <select id="riskCategory" name="riskCategory" required>
+                            <option value="">Select Category</option>
+                            <option value="1">1 - Very Low Risk</option>
+                            <option value="2">2 - Low Risk</option>
+                            <option value="3">3 - Low to Medium Risk</option>
+                            <option value="4">4 - Medium Risk</option>
+                            <option value="5">5 - Medium to High Risk</option>
+                            <option value="6">6 - High Risk</option>
+                            <option value="7">7 - Very High Risk</option>
+                        </select>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Capacity for Loss</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="emergencyFund">Emergency Fund (£)</label>
+                            <input type="number" id="emergencyFund" name="emergencyFund" min="0" step="1" onchange="calculateEmergencyMonths()" placeholder="£5,000-30,000">
+                        </div>
+                        <div class="form-group">
+                            <label>Months of Coverage</label>
+                            <input type="text" id="emergencyMonths" class="auto-calc" readonly value="0 months">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxAcceptableLoss">Maximum Acceptable Loss (%)</label>
+                        <input type="number" id="maxAcceptableLoss" name="maxAcceptableLoss" min="0" max="100" step="1">
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Risk Profile Reconciliation</h3>
+                    <div class="form-group">
+                        <label for="riskReconciliation">Risk Profile Reconciliation Notes</label>
+                        <textarea id="riskReconciliation" name="riskReconciliation" rows="4" placeholder="Explain any differences between ATR and CFL assessments..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Knowledge & Experience -->
+            <div class="section" id="section5">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status5"></span>
+                        5. Knowledge & Experience
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document the client's investment knowledge and experience. This helps ensure recommendations are appropriate and identifies any educational needs. Notes are required for clients with limited knowledge.
+                    </div>
+                    
+                    <h3>Investment Knowledge Assessment</h3>
+                    <div class="form-group">
+                        <label for="investmentKnowledge" class="required">Investment Knowledge Level</label>
+                        <select id="investmentKnowledge" name="investmentKnowledge" required onchange="toggleKnowledgeNotes()">
+                            <option value="">Select Level</option>
+                            <option value="None">None - No investment knowledge</option>
+                            <option value="Basic">Basic - Understands simple products</option>
+                            <option value="Intermediate">Intermediate - Good understanding</option>
+                            <option value="Advanced">Advanced - Sophisticated investor</option>
+                        </select>
+                    </div>
+                    <div class="form-group knowledge-notes" id="knowledgeNotes">
+                        <label for="knowledgeExplanation">Knowledge Level Explanation</label>
+                        <textarea id="knowledgeExplanation" name="knowledgeExplanation" rows="3" placeholder="Provide details about the client's knowledge level and any educational needs..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Investment Experience</h3>
+                    <div class="table-container">
+                        <table id="experienceTable">
+                            <thead>
+                                <tr>
+                                    <th>Investment Type</th>
+                                    <th>Years of Experience</th>
+                                    <th>Current Holdings</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="experienceTableBody">
+                                <tr>
+                                    <td>
+                                        <select name="experience_type[]">
+                                            <option value="Cash">Cash/Deposits</option>
+                                            <option value="Bonds">Bonds/Fixed Income</option>
+                                            <option value="Equities">Equities/Shares</option>
+                                            <option value="Funds">Mutual Funds/OEICs</option>
+                                            <option value="ETFs">ETFs</option>
+                                            <option value="Property">Property</option>
+                                            <option value="Alternatives">Alternative Investments</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="experience_years[]" min="0" max="50" step="1"></td>
+                                    <td>
+                                        <select name="experience_current[]">
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                        </select>
+                                    </td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addExperienceRow()">+ Add Experience</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Vulnerability Assessment -->
+            <div class="section" id="section6">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status6"></span>
+                        6. Vulnerability Assessment
+                        <span class="vulnerability-flag" id="vulnerabilityFlag">⚠️ Vulnerable</span>
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Identify any client vulnerabilities per FCA guidelines. If vulnerabilities are identified, document adaptations made to the advice process. The flag in the header will activate automatically when vulnerabilities are selected.
+                    </div>
+                    
+                    <h3>Vulnerability Indicators</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="vuln_health" name="vulnerabilities" value="Health" onchange="checkVulnerabilities()">
+                            <label for="vuln_health">Health - Physical or mental health conditions</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="vuln_life" name="vulnerabilities" value="Life Events" onchange="checkVulnerabilities()">
+                            <label for="vuln_life">Life Events - Bereavement, divorce, job loss</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="vuln_resilience" name="vulnerabilities" value="Resilience" onchange="checkVulnerabilities()">
+                            <label for="vuln_resilience">Resilience - Low financial resilience</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="vuln_capability" name="vulnerabilities" value="Capability" onchange="checkVulnerabilities()">
+                            <label for="vuln_capability">Capability - Low financial capability or confidence</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="vuln_none" name="vulnerabilities" value="None" onchange="checkVulnerabilities()">
+                            <label for="vuln_none">None identified</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="vulnerabilityDetails">Vulnerability Details</label>
+                        <textarea id="vulnerabilityDetails" name="vulnerabilityDetails" rows="3" placeholder="Provide details of any vulnerabilities identified..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adaptationsMade">Adaptations Made</label>
+                        <textarea id="adaptationsMade" name="adaptationsMade" rows="3" placeholder="Describe any adaptations made to the advice process..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 7: Options Considered -->
+            <div class="section" id="section7">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status7"></span>
+                        7. Options Considered
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document all options considered for the client, including advantages and disadvantages of each. This demonstrates a thorough advice process and helps justify your final recommendation.
+                    </div>
+                    
+                    <h3>Options Assessment</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_nothing" name="options" value="Do Nothing">
+                            <label for="opt_nothing">Do Nothing</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_cash" name="options" value="Hold in Cash">
+                            <label for="opt_cash">Hold in Cash</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_annuity" name="options" value="Purchase Annuity">
+                            <label for="opt_annuity">Purchase Annuity</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_drawdown" name="options" value="Flexi-Access Drawdown">
+                            <label for="opt_drawdown">Flexi-Access Drawdown</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_ufpls" name="options" value="UFPLS">
+                            <label for="opt_ufpls">Uncrystallised Funds Pension Lump Sum (UFPLS)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_hybrid" name="options" value="Hybrid">
+                            <label for="opt_hybrid">Hybrid Approach</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="optionsAdvantages">Advantages of Each Option</label>
+                        <textarea id="optionsAdvantages" name="optionsAdvantages" rows="4" placeholder="Detail the advantages of each option considered..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="optionsDisadvantages">Disadvantages of Each Option</label>
+                        <textarea id="optionsDisadvantages" name="optionsDisadvantages" rows="4" placeholder="Detail the disadvantages of each option considered..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Product Research</h3>
+                    <div class="form-group">
+                        <label for="productResearch">Product Research Undertaken</label>
+                        <textarea id="productResearch" name="productResearch" rows="3" placeholder="Describe the product research process and tools used..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 8: Recommendation -->
+            <div class="section" id="section8">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status8"></span>
+                        8. Recommendation
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Provide clear, specific recommendations based on all previous sections. Use the auto-generate feature as a starting point, then customize based on your professional judgment and the client's unique circumstances.
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" onclick="generateRecommendation()">🤖 Generate Recommendation Based on Data</button>
+                    
+                    <h3 style="margin-top: 20px;">Recommendation Summary</h3>
+                    <div class="form-group">
+                        <label for="recommendationSummary" class="required">Recommendation Summary</label>
+                        <textarea id="recommendationSummary" name="recommendationSummary" rows="5" required placeholder="Provide a clear summary of your recommendation..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Income Strategy</h3>
+                    <div class="form-group">
+                        <label for="incomeStrategyDetail">Income Strategy Details</label>
+                        <textarea id="incomeStrategyDetail" name="incomeStrategyDetail" rows="4" placeholder="Detail the recommended income withdrawal strategy..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Investment Strategy</h3>
+                    <div class="form-group">
+                        <label for="investmentStrategyDetail">Investment Strategy Details</label>
+                        <textarea id="investmentStrategyDetail" name="investmentStrategyDetail" rows="4" placeholder="Detail the recommended investment approach and asset allocation..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Death Benefit Nominations</h3>
+                    <div class="form-group">
+                        <label for="deathBenefitNominations">Death Benefit Nominations</label>
+                        <textarea id="deathBenefitNominations" name="deathBenefitNominations" rows="3" placeholder="Detail any death benefit nominations recommended..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 9: Suitability Assessment -->
+            <div class="section" id="section9">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status9"></span>
+                        9. Suitability Assessment
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Confirm that your recommendation meets all suitability criteria. Document how it aligns with objectives, risk profile, and affordability. Ensure all risk warnings have been communicated to the client.
+                    </div>
+                    
+                    <h3>Suitability Criteria</h3>
+                    <div class="form-group">
+                        <label>Meets client objectives?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="objectives_yes" name="meetsObjectives" value="Yes" required>
+                                <label for="objectives_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="objectives_no" name="meetsObjectives" value="No" required>
+                                <label for="objectives_no">No</label>
+                            </div>
+                        </div>
+                        <textarea name="objectivesExplanation" rows="2" placeholder="Explain how the recommendation meets objectives..." style="margin-top: 10px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Suitable for risk profile?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="risk_yes" name="suitableRisk" value="Yes" required>
+                                <label for="risk_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="risk_no" name="suitableRisk" value="No" required>
+                                <label for="risk_no">No</label>
+                            </div>
+                        </div>
+                        <textarea name="riskExplanation" rows="2" placeholder="Explain risk suitability..." style="margin-top: 10px;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Affordable for the client?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="affordable_yes" name="affordable" value="Yes" required>
+                                <label for="affordable_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="affordable_no" name="affordable" value="No" required>
+                                <label for="affordable_no">No</label>
+                            </div>
+                        </div>
+                        <textarea name="affordabilityExplanation" rows="2" placeholder="Explain affordability assessment..." style="margin-top: 10px;"></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Advantages & Disadvantages</h3>
+                    <div class="form-group">
+                        <label for="recommendationAdvantages">Advantages of Recommendation</label>
+                        <textarea id="recommendationAdvantages" name="recommendationAdvantages" rows="4" placeholder="List the key advantages..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="recommendationDisadvantages">Disadvantages of Recommendation</label>
+                        <textarea id="recommendationDisadvantages" name="recommendationDisadvantages" rows="4" placeholder="List the key disadvantages..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Risk Warnings</h3>
+                    <p style="font-style: italic; margin-bottom: 15px;">Please confirm that you have communicated the following risk warnings to the client:</p>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="risk_capital" name="riskWarnings" value="Capital at Risk">
+                            <label for="risk_capital">I have warned the client that capital is at risk and can fall as well as rise</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="risk_inflation" name="riskWarnings" value="Inflation Risk">
+                            <label for="risk_inflation">I have warned the client that inflation may erode the real value of investments</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="risk_liquidity" name="riskWarnings" value="Liquidity Risk">
+                            <label for="risk_liquidity">I have warned the client that some investments may be difficult to sell quickly</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="risk_concentration" name="riskWarnings" value="Concentration Risk">
+                            <label for="risk_concentration">I have warned the client that lack of diversification increases risk</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="risk_tax" name="riskWarnings" value="Tax Risk">
+                            <label for="risk_tax">I have warned the client that tax rules can change and depend on circumstances</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 10: Costs & Charges -->
+            <div class="section" id="section10">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status10"></span>
+                        10. Costs & Charges
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Full transparency on all costs is required. Include initial and ongoing charges for advice, platform, and investments. The total ongoing charge calculation helps assess value for money.
+                    </div>
+                    
+                    <h3>Adviser Charges</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="initialAdviserCharge">Initial Adviser Charge (£)</label>
+                            <input type="number" id="initialAdviserCharge" name="initialAdviserCharge" min="0" step="1" onchange="calculateTotalCharges()" placeholder="£1,000-5,000">
+                        </div>
+                        <div class="form-group">
+                            <label for="initialAdviserChargePercent">Initial Adviser Charge (%)</label>
+                            <input type="number" id="initialAdviserChargePercent" name="initialAdviserChargePercent" min="0" max="10" step="0.1" onchange="calculateTotalCharges()" placeholder="1-3%">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ongoingAdviserCharge">Ongoing Adviser Charge (% p.a.)</label>
+                            <input type="number" id="ongoingAdviserCharge" name="ongoingAdviserCharge" min="0" max="5" step="0.1" onchange="calculateTotalCharges()" placeholder="0.5-1%">
+                        </div>
+                        <div class="form-group">
+                            <label for="adviserChargeMethod">Payment Method</label>
+                            <select id="adviserChargeMethod" name="adviserChargeMethod">
+                                <option value="Deducted">Deducted from investment</option>
+                                <option value="Direct">Direct payment</option>
+                                <option value="Both">Combination</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Product & Investment Charges</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="platformCharge">Platform Charge (% p.a.)</label>
+                            <input type="number" id="platformCharge" name="platformCharge" min="0" max="2" step="0.01" onchange="calculateTotalCharges()" placeholder="0.15-0.45%">
+                        </div>
+                        <div class="form-group">
+                            <label for="fundCharges">Fund Charges (% p.a.)</label>
+                            <input type="number" id="fundCharges" name="fundCharges" min="0" max="3" step="0.01" onchange="calculateTotalCharges()" placeholder="0.5-1.5%">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Total Ongoing Charges (% p.a.)</label>
+                        <input type="text" id="totalOngoingCharges" class="auto-calc" readonly value="0.00%">
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Value Assessment</h3>
+                    <div class="form-group">
+                        <label for="valueAssessment">Value for Money Assessment</label>
+                        <textarea id="valueAssessment" name="valueAssessment" rows="4" placeholder="Explain how the charges represent value for money..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 11: Documentation & Compliance -->
+            <div class="section" id="section11">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status11"></span>
+                        11. Documentation & Compliance
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Confirm all required documents have been provided to the client and properly stored. Reference the storage location for compliance records. This ensures FCA documentation requirements are met.
+                    </div>
+                    
+                    <h3>Documents Provided</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_suitability" name="documents" value="Suitability Report">
+                            <label for="doc_suitability">Suitability Report</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_kiid" name="documents" value="KIID">
+                            <label for="doc_kiid">Key Information Documents (KIIDs)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_illustration" name="documents" value="Illustration">
+                            <label for="doc_illustration">Product Illustration</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_costs" name="documents" value="Costs Disclosure">
+                            <label for="doc_costs">Costs & Charges Disclosure</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_terms" name="documents" value="Terms">
+                            <label for="doc_terms">Terms of Business</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="doc_privacy" name="documents" value="Privacy">
+                            <label for="doc_privacy">Privacy Notice</label>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Document Storage Reference</h3>
+                    <div class="form-group">
+                        <label for="storageLocation">Document Storage Location</label>
+                        <input type="text" id="storageLocation" name="storageLocation" placeholder="e.g., SharePoint/ClientFiles/2024/ClientName/">
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="documentReferences">Document References</label>
+                        <textarea id="documentReferences" name="documentReferences" rows="3" placeholder="List document names and their locations..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Record Keeping</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="record_meeting" name="recordKeeping" value="Meeting Notes">
+                            <label for="record_meeting">Meeting notes retained</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="record_research" name="recordKeeping" value="Research">
+                            <label for="record_research">Research documentation retained</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="record_calculations" name="recordKeeping" value="Calculations">
+                            <label for="record_calculations">Calculations retained</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="record_correspondence" name="recordKeeping" value="Correspondence">
+                            <label for="record_correspondence">Client correspondence retained</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 12: Quality Assurance & Approvals -->
+            <div class="section" id="section12">
+                <div class="section-header">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status12"></span>
+                        12. Quality Assurance & Approvals
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Document the adviser's assessment and any compliance review. This provides an audit trail and ensures proper oversight of the advice process.
+                    </div>
+                    
+                    <h3>Adviser Assessment</h3>
+                    <div class="form-group">
+                        <label for="adviserName" class="required">Adviser Name</label>
+                        <select id="adviserName" name="adviserName" required>
+                            <option value="">Select Adviser</option>
+                            <option value="John Page">John Page</option>
+                            <option value="Robin Mackrill">Robin Mackrill</option>
+                        </select>
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="adviserNumber" class="required">FCA Reference Number
+                            <span class="tooltip">
+                                <span class="tooltip-icon">?</span>
+                                <span class="tooltip-content">Enter the adviser's 7-digit FCA individual reference number (e.g., 1234567)</span>
+                            </span>
+                        </label>
+                        <input type="text" id="adviserNumber" name="adviserNumber" required pattern="[0-9]{7}" title="Enter a 7-digit FCA reference number" placeholder="1234567" maxlength="7">
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="adviserAssessment">Adviser's Assessment</label>
+                        <textarea id="adviserAssessment" name="adviserAssessment" rows="4" placeholder="Confirm the suitability of the recommendation..."></textarea>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Compliance Assessment</h3>
+                    <div class="form-group">
+                        <label for="complianceReviewer">Compliance Reviewer Name</label>
+                        <input type="text" id="complianceReviewer" name="complianceReviewer" pattern="[A-Za-z\s-']+" title="Letters only">
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="complianceDate">Review Date</label>
+                        <input type="date" id="complianceDate" name="complianceDate">
+                        <span class="field-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="complianceComments">Compliance Comments</label>
+                        <textarea id="complianceComments" name="complianceComments" rows="3" placeholder="Any compliance observations or requirements..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 13: Declarations & Signatures -->
+            <div class="section" id="section13">
+                <div class="section-header" onclick="toggleSection('section13')">
+                    <h2>
+                        <span class="status-indicator status-incomplete" id="status13"></span>
+                        13. Declarations & Signatures
+                    </h2>
+                    <span class="collapse-icon">▼</span>
+                </div>
+                <div class="section-content">
+                    <div class="section-tooltip">
+                        <strong>Section Guidance:</strong> Final confirmations that the advice is suitable and compliant. All declarations must be checked and signed/dated. Compliance approval may be required depending on firm procedures.
+                    </div>
+                    
+                    <h3>Adviser Declaration</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declare_suitable" name="adviserDeclaration" value="Suitable" required>
+                            <label for="declare_suitable">I confirm this recommendation is suitable based on the client's circumstances</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declare_compliant" name="adviserDeclaration" value="Compliant" required>
+                            <label for="declare_compliant">I confirm this advice complies with FCA rules and guidance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="declare_documented" name="adviserDeclaration" value="Documented" required>
+                            <label for="declare_documented">I confirm all advice has been properly documented</label>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label for="adviserSignature" class="required">Adviser Signature</label>
+                            <input type="text" id="adviserSignature" name="adviserSignature" required placeholder="Type full name">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="adviserSignDate" class="required">Date</label>
+                            <input type="date" id="adviserSignDate" name="adviserSignDate" required>
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Compliance Approval</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="complianceSignature">Compliance Signature</label>
+                            <input type="text" id="complianceSignature" name="complianceSignature" placeholder="Type full name">
+                            <span class="field-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="complianceSignDate">Date</label>
+                            <input type="date" id="complianceSignDate" name="complianceSignDate">
+                            <span class="field-error"></span>
+                        </div>
+                    </div>
+
+                    <div class="summary-box" style="margin-top: 30px;">
+                        <h3>✅ Form Completion</h3>
+                        <p>Once all sections are complete and declarations signed, you can:</p>
+                        <ul style="margin-left: 20px;">
+                            <li>Save the form using the Save button</li>
+                            <li>Export to Excel for your records</li>
+                            <li>Print a copy for the client file</li>
+                        </ul>
+                        <p style="margin-top: 15px;"><strong>Next Steps:</strong> Review all information for accuracy before submitting to compliance for approval.</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // This improved function populates all the standard form fields
+    function populateForm(formData) {
+        for (const key in formData) {
+            if (key === 'tables') continue; // Handled by restoreTables
+
+            const elements = document.getElementsByName(key);
+            if (elements.length === 0) continue;
+
+            const fieldType = elements[0].type;
+            const value = formData[key];
+
+            // Handles checkboxes and radio buttons
+            if (fieldType === 'checkbox' || fieldType === 'radio') {
+                const values = Array.isArray(value) ? value : [value];
+                elements.forEach(el => {
+                    if (values.includes(el.value)) {
+                        el.checked = true;
+                    }
                 });
+            } 
+            // Handles multiple inputs with the same name
+            else if (elements.length > 1 && Array.isArray(value)) { 
+                 elements.forEach((el, index) => {
+                     if (value[index] !== undefined) {
+                         el.value = value[index];
+                     }
+                 });
+            } 
+            // Handles all single fields (text, select, textarea, date, etc.)
+            else { 
+                elements[0].value = value;
             }
         }
+    }
 
-        async function loadAndDisplayForm() {
-            const params = new URLSearchParams(window.location.search);
-            const formId = params.get('id');
+    // This improved function dynamically rebuilds the rows in your tables with the saved data
+    function restoreTables(tablesData) {
+        if (!tablesData) return;
+        
+        for (const tableName in tablesData) {
+            const tableBodyId = `${tableName.replace(/s$/, '')}TableBody`; 
+            const tbody = document.getElementById(tableBodyId);
 
-            if (!formId) {
-                document.getElementById('viewFormHeader').textContent = 'Error: No Form ID Provided';
-                return;
-            }
-
-            const { data, error } = await supabaseClient
-                .from('ifa_forms')
-                .select('payload')
-                .eq('form_id', formId)
-                .single();
-
-            if (error || !data) {
-                console.error('Error fetching form:', error);
-                document.getElementById('viewFormHeader').textContent = `Error: Could not load form ${formId}`;
-                return;
-            }
-
-            const formData = data.payload.formData;
-            const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`;
-            document.getElementById('viewFormHeader').textContent = `Viewing Form for: ${clientName.trim()}`;
-
-            // Populate all fields from the saved data
-            populateForm(formData);
+            if (!tbody) {
+                console.warn(`Table body with ID '${tableBodyId}' not found.`);
+                continue;
+            };
             
-            // Rebuild the tables with the saved data
-            restoreTables(formData.tables);
+            tbody.innerHTML = ''; // Clear any placeholder rows from the original HTML
+            const tableRowsData = tablesData[tableName];
 
-            // Disable the entire form to make it read-only
-            document.getElementById('suitabilityForm').querySelectorAll('input, select, textarea').forEach(el => {
-                el.disabled = true;
+            if(!Array.isArray(tableRowsData)) continue;
+
+            tableRowsData.forEach(rowData => {
+                const newRow = tbody.insertRow();
+                
+                // Create a disabled input/select for each cell
+                rowData.forEach((cellData) => {
+                    const cell = newRow.insertCell();
+                    let displayElement;
+
+                    if (cellData.type === 'select-one') {
+                        displayElement = document.createElement('select');
+                        const option = document.createElement('option');
+                        option.value = cellData.value;
+                        option.textContent = cellData.value;
+                        displayElement.appendChild(option);
+                    } else {
+                        displayElement = document.createElement('input');
+                        displayElement.type = 'text'; // Render all as text for clarity
+                        displayElement.value = cellData.value;
+                    }
+                    
+                    displayElement.disabled = true;
+                    cell.appendChild(displayElement);
+                });
+                // Add an empty cell for the 'Action' column to keep alignment
+                if (newRow.cells.length < tbody.parentElement.querySelector('thead tr').cells.length) {
+                    newRow.insertCell();
+                }
             });
         }
+    }
 
-        document.addEventListener('DOMContentLoaded', loadAndDisplayForm);
-    </script>
-</body>
+    // Main function that runs when the page loads
+    async function loadAndDisplayForm() {
+        // 1. Get the form ID from the URL
+        const params = new URLSearchParams(window.location.search);
+        const formId = params.get('id');
+
+        if (!formId) {
+            document.getElementById('viewFormHeader').textContent = 'Error: No Form ID Provided';
+            return;
+        }
+
+        // 2. Fetch the specific form data from Supabase
+        const { data, error } = await supabaseClient
+            .from('ifa_forms')
+            .select('payload')
+            .eq('form_id', formId)
+            .single();
+
+        if (error || !data) {
+            console.error('Error fetching form:', error);
+            document.getElementById('viewFormHeader').textContent = `Error: Could not load form ${formId}`;
+            return;
+        }
+
+        const formData = data.payload.formData;
+        const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`;
+        document.getElementById('viewFormHeader').textContent = `Viewing Form for: ${clientName.trim()}`;
+
+        // 3. Populate all the fields and tables
+        populateForm(formData);
+        restoreTables(formData.tables);
+
+        // 4. Disable the entire form to make it read-only
+        document.getElementById('suitabilityForm').querySelectorAll('input, select, textarea, button').forEach(el => {
+            if(el.closest('.form-controls')) return;
+            el.disabled = true;
+        });
+        
+         // Hide any "add row" or "remove" buttons that might exist in the HTML
+        document.querySelectorAll('.add-row-btn, .remove-btn').forEach(btn => btn.style.display = 'none');
+    }
+
+    // 5. Run the main function after the page has loaded
+    document.addEventListener('DOMContentLoaded', loadAndDisplayForm);
+</script>
+
+    </div></body>
+
 </html>
