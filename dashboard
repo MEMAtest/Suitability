@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFA Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --secondary-blue: #4472C4;
+            --light-blue: #E7F1FF;
+            --gray-dark: #333333;
+            --success-green: #28A745;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background-color: #F5F7FA;
+            color: var(--gray-dark);
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .summary-card h3 {
+            margin: 0 0 10px;
+            color: var(--primary-blue);
+            font-size: 16px;
+        }
+        .summary-card .value {
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-blue);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        tr:hover {
+            background-color: #F9FAFB;
+        }
+        .chart-container {
+             display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: var(--gray-medium);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <h1>Compliance Dashboard</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="summary-grid" id="summary-cards">
+            <div class="summary-card">
+                <h3>Total Submissions</h3>
+                <p class="value" id="totalSubmissions">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Vulnerable Clients</h3>
+                <p class="value" id="vulnerableClients">0</p>
+            </div>
+            <div class="summary-card">
+                <h3>Avg. Risk Category</h3>
+                <p class="value" id="avgRisk">0</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>User Submissions</h2>
+            <div id="loadingSubmissions" class="loading">Loading submissions...</div>
+            <div style="overflow-x:auto;">
+                <table id="submissionsTable" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Date Saved</th>
+                            <th>Risk Category</th>
+                            <th>Advice Type</th>
+                            <th>Completion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Analytics</h2>
+            <div class="chart-container">
+                <div>
+                    <h3>Advice Type Distribution</h3>
+                    <canvas id="adviceTypeChart"></canvas>
+                </div>
+                <div>
+                    <h3>Risk Profile Distribution</h3>
+                    <canvas id="riskProfileChart"></canvas>
+                </div>
+                 <div>
+                    <h3>Submissions Over Time</h3>
+                    <canvas id="submissionsTimelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Use the same Supabase credentials from your index.html file
+        const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Main function to load all dashboard data
+        async function loadDashboardData() {
+            console.log('Fetching data from Supabase...');
+            const { data, error } = await supabase
+                .from('ifa_forms')
+                .select('form_id, payload, created_at, updated_at')
+                .order('updated_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loadingSubmissions').textContent = 'Error loading data. Check console for details.';
+                return;
+            }
+
+            // Filter out autosaves and other artifacts
+            const forms = data.filter(d => d.payload && d.payload.type === 'form');
+            console.log(`Found ${forms.length} valid form submissions.`);
+
+            // Process data and render the dashboard
+            populateSubmissionsTable(forms);
+            updateSummaryCards(forms);
+            renderCharts(forms);
+        }
+
+        // Function to populate the submissions table
+        function populateSubmissionsTable(forms) {
+            const tableBody = document.getElementById('submissionsBody');
+            tableBody.innerHTML = ''; // Clear existing rows
+
+            if (forms.length === 0) {
+                 document.getElementById('loadingSubmissions').textContent = 'No submissions found.';
+                 return;
+            }
+
+            forms.forEach(form => {
+                const formData = form.payload.formData;
+                if (!formData) return;
+
+                const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'N/A';
+                const savedDate = new Date(form.updated_at).toLocaleDateString('en-GB');
+                
+                // Calculate completion percentage
+                const totalFields = Object.keys(formData).length;
+                const filledFields = Object.values(formData).filter(v => v !== '' && v !== null).length;
+                const completion = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+
+
+                const row = `
+                    <tr>
+                        <td>${clientName}</td>
+                        <td>${savedDate}</td>
+                        <td>${formData.riskCategory || 'N/A'}</td>
+                        <td>${formData.adviceType || 'N/A'}</td>
+                        <td>${completion}%</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+            
+            document.getElementById('loadingSubmissions').style.display = 'none';
+            document.getElementById('submissionsTable').style.display = 'table';
+        }
+
+        // Function to update the summary cards
+        function updateSummaryCards(forms) {
+            document.getElementById('totalSubmissions').textContent = forms.length;
+
+            let vulnerableCount = 0;
+            let totalRisk = 0;
+            let riskEntries = 0;
+
+            forms.forEach(form => {
+                const formData = form.payload.formData;
+                if (!formData) return;
+
+                // Check for vulnerability
+                if (Array.isArray(formData.vulnerabilities) && !formData.vulnerabilities.includes('None') && formData.vulnerabilities.length > 0) {
+                    vulnerableCount++;
+                }
+
+                // Sum risk categories
+                if (formData.riskCategory) {
+                    totalRisk += parseInt(formData.riskCategory, 10);
+                    riskEntries++;
+                }
+            });
+
+            document.getElementById('vulnerableClients').textContent = vulnerableCount;
+            const avgRisk = riskEntries > 0 ? (totalRisk / riskEntries).toFixed(1) : 'N/A';
+            document.getElementById('avgRisk').textContent = avgRisk;
+        }
+
+        // Function to render all charts
+        function renderCharts(forms) {
+            renderAdviceTypeChart(forms);
+            renderRiskProfileChart(forms);
+            renderSubmissionsTimeline(forms);
+        }
+
+        // Chart 1: Advice Type Distribution
+        function renderAdviceTypeChart(forms) {
+            const ctx = document.getElementById('adviceTypeChart').getContext('2d');
+            const adviceCounts = {};
+
+            forms.forEach(form => {
+                const type = form.payload.formData.adviceType || 'Unknown';
+                adviceCounts[type] = (adviceCounts[type] || 0) + 1;
+            });
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(adviceCounts),
+                    datasets: [{
+                        label: 'Advice Type',
+                        data: Object.values(adviceCounts),
+                        backgroundColor: ['#4472C4', '#5B9BD5', '#84B5E3', '#A5C9E8', '#C9DDF2'],
+                        hoverOffset: 4
+                    }]
+                }
+            });
+        }
+
+        // Chart 2: Risk Profile Distribution
+        function renderRiskProfileChart(forms) {
+            const ctx = document.getElementById('riskProfileChart').getContext('2d');
+            const riskCounts = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0 };
+
+            forms.forEach(form => {
+                const risk = form.payload.formData.riskCategory;
+                if (risk && riskCounts.hasOwnProperty(risk)) {
+                    riskCounts[risk]++;
+                }
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1', '2', '3', '4', '5', '6', '7'],
+                    datasets: [{
+                        label: 'Number of Clients',
+                        data: Object.values(riskCounts),
+                        backgroundColor: '#28A745'
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        // Chart 3: Submissions over time
+        function renderSubmissionsTimeline(forms) {
+            const ctx = document.getElementById('submissionsTimelineChart').getContext('2d');
+            const submissionsByDate = {};
+
+            forms.forEach(form => {
+                const date = new Date(form.created_at).toISOString().split('T')[0];
+                submissionsByDate[date] = (submissionsByDate[date] || 0) + 1;
+            });
+
+            const sortedDates = Object.keys(submissionsByDate).sort();
+            const labels = sortedDates;
+            const data = sortedDates.map(date => submissionsByDate[date]);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Submissions per Day',
+                        data: data,
+                        borderColor: '#003366',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                }
+            });
+        }
+
+        // Load data when the page is ready
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+
+    </script>
+</body>
+</html>
