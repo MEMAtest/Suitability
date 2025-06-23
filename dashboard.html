@@ -245,7 +245,7 @@
                 if (!formData) return;
 
                 // Check for vulnerability
-                if (Array.isArray(formData.vulnerabilities) && !formData.vulnerabilities.includes('None') && formData.vulnerabilities.length > 0) {
+                if (formData.vulnerabilities && formData.vulnerabilities !== 'None' && formData.vulnerabilities !== '') {
                     vulnerableCount++;
                 }
 
