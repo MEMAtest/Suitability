@@ -197,39 +197,39 @@
 
         // Function to populate the submissions table
         function populateSubmissionsTable(forms) {
-            const tableBody = document.getElementById('submissionsBody');
-            tableBody.innerHTML = ''; // Clear existing rows
+    const tableBody = document.getElementById('submissionsBody');
+    tableBody.innerHTML = ''; // Clear existing rows
 
-            if (forms.length === 0) {
-                 document.getElementById('loadingSubmissions').textContent = 'No finalized submissions found. (Autosaves are ignored). Please save a form using the main "Save Form" button.';
-                 return;
-            }
+    if (forms.length === 0) {
+        document.getElementById('loadingSubmissions').textContent = 'No finalized submissions found. (Autosaves are ignored). Please save a form using the main "Save Form" button.';
+        return;
+    }
 
-            forms.forEach(form => {
-                const formData = form.payload.formData;
-                if (!formData) return;
+    forms.forEach(form => {
+        const formData = form.payload.formData;
+        if (!formData) return;
 
-                const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'N/A';
-                const savedDate = new Date(form.updated_at).toLocaleDateString('en-GB');
-                
-                // Use the saved completion percentage if it exists
-                const completion = formData.completionPercentage || 'N/A';
+        const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'N/A';
+        const savedDate = new Date(form.updated_at).toLocaleDateString('en-GB');
+        const completion = formData.completionPercentage || 'N/A';
 
-                const row = `
-                    <tr>
-                        <td>${clientName}</td>
-                        <td>${savedDate}</td>
-                        <td>${formData.riskCategory || 'N/A'}</td>
-                        <td>${formData.adviceType || 'N/A'}</td>
-                        <td>${completion}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-            
-            document.getElementById('loadingSubmissions').style.display = 'none';
-            document.getElementById('submissionsTable').style.display = 'table';
-        }
+        // ** THIS IS THE KEY CHANGE **
+        // The client name is now a link to view-form.html, passing the form_id in the URL
+        const row = `
+            <tr>
+                <td><a href="/view-form.html?id=${form.form_id}" target="_blank" title="View Details">${clientName}</a></td>
+                <td>${savedDate}</td>
+                <td>${formData.riskCategory || 'N/A'}</td>
+                <td>${formData.adviceType || 'N/A'}</td>
+                <td>${completion}</td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+
+    document.getElementById('loadingSubmissions').style.display = 'none';
+    document.getElementById('submissionsTable').style.display = 'table';
+}
 
         // Function to update the summary cards
         function updateSummaryCards(forms) {
