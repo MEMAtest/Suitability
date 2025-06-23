@@ -162,17 +162,21 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Use the same Supabase credentials from your index.html file
         const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // ** FIX: Correctly initialize the Supabase client with a new variable name **
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Main function to load all dashboard data
         async function loadDashboardData() {
             console.log('Fetching data from Supabase...');
-            const { data, error } = await supabase
+            
+            // ** FIX: Use the correct variable name 'supabaseClient' **
+            const { data, error } = await supabaseClient
                 .from('ifa_forms')
                 .select('form_id, payload, created_at, updated_at')
                 .order('updated_at', { ascending: false });
@@ -199,7 +203,7 @@
             tableBody.innerHTML = ''; // Clear existing rows
 
             if (forms.length === 0) {
-                 document.getElementById('loadingSubmissions').textContent = 'No submissions found.';
+                 document.getElementById('loadingSubmissions').textContent = 'No finalized submissions found. (Autosaves are ignored). Please save a form using the main "Save Form" button.';
                  return;
             }
 
@@ -210,11 +214,8 @@
                 const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'N/A';
                 const savedDate = new Date(form.updated_at).toLocaleDateString('en-GB');
                 
-                // Calculate completion percentage
-                const totalFields = Object.keys(formData).length;
-                const filledFields = Object.values(formData).filter(v => v !== '' && v !== null).length;
-                const completion = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
-
+                // Use the saved completion percentage if it exists
+                const completion = formData.completionPercentage || 'N/A';
 
                 const row = `
                     <tr>
@@ -222,7 +223,7 @@
                         <td>${savedDate}</td>
                         <td>${formData.riskCategory || 'N/A'}</td>
                         <td>${formData.adviceType || 'N/A'}</td>
-                        <td>${completion}%</td>
+                        <td>${completion}</td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
@@ -244,7 +245,7 @@
                 const formData = form.payload.formData;
                 if (!formData) return;
 
-                // Check for vulnerability
+                // ** FIX: Correctly check 'vulnerabilities' as a string, not an array **
                 if (formData.vulnerabilities && formData.vulnerabilities !== 'None' && formData.vulnerabilities !== '') {
                     vulnerableCount++;
                 }
@@ -307,7 +308,7 @@
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['1', '2', '3', '4', '5', '6', '7'],
+                    labels: ['1-VL', '2-L', '3-LM', '4-M', '5-MH', '6-H', '7-VH'],
                     datasets: [{
                         label: 'Number of Clients',
                         data: Object.values(riskCounts),
@@ -315,7 +316,7 @@
                     }]
                 },
                 options: {
-                    scales: { y: { beginAtZero: true } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
                     plugins: { legend: { display: false } }
                 }
             });
