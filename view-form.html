@@ -12,7 +12,7 @@
         header { background-color: var(--primary-blue); color: white; padding: 20px 0; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         header h1 { margin: 0; font-size: 24px; font-weight: 600; }
         .form-controls { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.3s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
         .btn-warning { background-color: var(--warning-orange); color: var(--gray-dark); }
         .section { background: white; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--light-blue); }
@@ -20,7 +20,7 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--gray-dark); }
         input[type="text"], input[type="number"], input[type="date"], input[type="email"], input[type="tel"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--gray-light); border-radius: 4px; font-size: 14px; }
-        input:disabled, select:disabled, textarea:disabled { background-color: #f8f9fa; cursor: not-allowed; }
+        input:disabled, select:disabled, textarea:disabled { background-color: #f8f9fa; color: #555; cursor: not-allowed; border-color: #dee2e6; }
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
         .checkbox-group, .radio-group { display: flex; flex-direction: column; gap: 10px; }
         .checkbox-item, .radio-item { display: flex; align-items: center; gap: 8px; }
@@ -28,6 +28,8 @@
         table { width: 100%; border-collapse: collapse; }
         th { background-color: var(--light-blue); color: var(--primary-blue); padding: 12px; text-align: left; }
         td { padding: 10px; border-bottom: 1px solid var(--gray-light); }
+        #suitabilityForm { pointer-events: none; } /* Disables clicks on the form area */
+        .form-controls a.btn { pointer-events: auto; } /* Re-enables clicks on buttons in the controls area */
     </style>
 </head>
 <body>
@@ -38,27 +40,13 @@
     </header>
 
     <div class="container">
-        <div class="form-controls" id="view-form-controls">
+        <div class="form-controls">
+            <a href="/index.html" class="btn btn-warning">⬅️ Back to Main Form</a>
             <button class="btn btn-warning" onclick="window.print()">🖨️ Print</button>
         </div>
 
         <form id="suitabilityForm">
-             <div class="section" id="section1">
-                <div class="section-header"><h2>1. Client Details & Objectives</h2></div>
-                <div class="section-content">
-                    <h3>Personal Information</h3>
-                    <div class="form-row">
-                        <div class="form-group"><label for="clientRef">Client Reference</label><input type="text" id="clientRef" name="clientRef"></div>
-                        <div class="form-group"><label for="title">Title</label><select id="title" name="title"><option value=""></option><option value="Mr">Mr</option><option value="Mrs">Mrs</option><option value="Miss">Miss</option><option value="Ms">Ms</option><option value="Dr">Dr</option><option value="Prof">Prof</option></select></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label for="firstName">First Name</label><input type="text" id="firstName" name="firstName"></div>
-                        <div class="form-group"><label for="lastName">Last Name</label><input type="text" id="lastName" name="lastName"></div>
-                    </div>
-                    </div>
-            </div>
-
-            </form>
+             </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -67,45 +55,75 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Disables all form fields to make it "read-only"
-        function lockForm() {
-            const form = document.getElementById('suitabilityForm');
-            const elements = form.elements;
-            for (let i = 0; i < elements.length; i++) {
-                elements[i].disabled = true;
-                // A small style adjustment to make disabled fields more readable
-                if(elements[i].disabled) {
-                    elements[i].style.backgroundColor = '#fdfdfd';
-                    elements[i].style.color = '#333';
-                    elements[i].style.border = '1px solid #eee';
+        // This improved function populates all fields, including complex ones
+        function populateForm(formData) {
+            for (const key in formData) {
+                if (key === 'tables') continue; // Skip the tables object, it's handled separately
+
+                const elements = document.getElementsByName(key);
+                if (elements.length === 0) continue;
+
+                const fieldType = elements[0].type;
+                const value = formData[key];
+
+                if (fieldType === 'checkbox' || fieldType === 'radio') {
+                    const values = Array.isArray(value) ? value : [value];
+                    elements.forEach(el => {
+                        if (values.includes(el.value)) {
+                            el.checked = true;
+                        }
+                    });
+                } else if (elements.length > 1) { // Handle fields with multiple inputs like in tables
+                     const values = Array.isArray(value) ? value : [value];
+                     elements.forEach((el, index) => {
+                         if (values[index]) {
+                             el.value = values[index];
+                         }
+                     });
+                } else { // Handle single fields (text, select, textarea, etc.)
+                    elements[0].value = value;
                 }
             }
         }
 
-        function restoreTableData(tableBodyId, tableData) {
-            const tbody = document.getElementById(tableBodyId);
-            if (!tbody || !tableData) return;
-            tbody.innerHTML = ''; // Clear placeholder rows
+        // This improved function rebuilds the tables with the saved data
+        function restoreTables(tablesData) {
+            if (!tablesData) return;
+            
+            for (const tableName in tablesData) {
+                const tableBodyId = `${tableName.slice(0, -1)}TableBody`; // e.g., 'assets' -> 'assetTableBody'
+                const tbody = document.getElementById(tableBodyId);
+                if (!tbody) continue;
+                
+                tbody.innerHTML = ''; // Clear any placeholder rows
+                const tableRowsData = tablesData[tableName];
 
-            tableData.forEach(rowData => {
-                const newRow = tbody.insertRow();
-                // Assumes the number of cells matches the number of columns in the original form
-                for (let i = 0; i < rowData.length; i++) {
-                    newRow.insertCell();
-                }
+                tableRowsData.forEach(rowData => {
+                    const newRow = tbody.insertRow();
+                    const templateRow = tbody.closest('table').querySelector('thead tr');
+                    
+                    // Create a disabled input/select for each cell based on the form's structure
+                    rowData.forEach(cellData => {
+                        const cell = newRow.insertCell();
+                        const input = document.createElement(cellData.type === 'select-one' ? 'select' : 'input');
+                        input.type = cellData.type;
+                        input.value = cellData.value;
+                        input.disabled = true;
+                        input.style.backgroundColor = '#fdfdfd';
+                        input.style.color = '#333';
+                        input.style.border = '1px solid #eee';
 
-                rowData.forEach((cellData, index) => {
-                    const cell = newRow.cells[index];
-                    // Create a disabled input/select to display the value
-                    if (cellData.type === 'select-one') {
-                        cell.textContent = cellData.value;
-                    } else if (cellData.type === 'checkbox') {
-                        cell.textContent = cellData.checked ? 'Yes' : 'No';
-                    } else {
-                        cell.textContent = cellData.value || '';
-                    }
+                        if(cellData.type === 'select-one') {
+                            const option = document.createElement('option');
+                            option.value = cellData.value;
+                            option.textContent = cellData.value;
+                            input.appendChild(option);
+                        }
+                        
+                        cell.appendChild(input);
+                    });
                 });
-            });
+            }
         }
 
         async function loadAndDisplayForm() {
@@ -116,8 +134,6 @@
                 document.getElementById('viewFormHeader').textContent = 'Error: No Form ID Provided';
                 return;
             }
-
-            document.getElementById('viewFormHeader').textContent = `Viewing Form: ${formId}`;
 
             const { data, error } = await supabaseClient
                 .from('ifa_forms')
@@ -132,37 +148,19 @@
             }
 
             const formData = data.payload.formData;
+            const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`;
+            document.getElementById('viewFormHeader').textContent = `Viewing Form for: ${clientName.trim()}`;
 
-            // Populate all simple form fields
-            Object.keys(formData).forEach(key => {
-                const elements = document.getElementsByName(key);
-                if (elements.length > 0) {
-                    if (elements[0].type === 'radio' || elements[0].type === 'checkbox') {
-                        const values = Array.isArray(formData[key]) ? formData[key] : [formData[key]];
-                        elements.forEach(el => {
-                            if (values.includes(el.value)) {
-                                el.checked = true;
-                            }
-                        });
-                    } else {
-                        elements[0].value = formData[key];
-                    }
-                }
-            });
-
-            // Populate tables data if it exists
-            if (formData.tables) {
-                restoreTableData('assetsTableBody', formData.tables.assets);
-                restoreTableData('liabilitiesTableBody', formData.tables.liabilities);
-                restoreTableData('pensionTableBody', formData.tables.pensions);
-                restoreTableData('experienceTableBody', formData.tables.experience);
-            }
+            // Populate all fields from the saved data
+            populateForm(formData);
             
-            // Call any calculation functions from index.html if you want to show totals
-            // e.g., if you copied the calculateTotals() function into this script
-            // calculateTotals();
+            // Rebuild the tables with the saved data
+            restoreTables(formData.tables);
 
-            lockForm(); // Lock the form after populating
+            // Disable the entire form to make it read-only
+            document.getElementById('suitabilityForm').querySelectorAll('input, select, textarea').forEach(el => {
+                el.disabled = true;
+            });
         }
 
         document.addEventListener('DOMContentLoaded', loadAndDisplayForm);
