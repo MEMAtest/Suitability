@@ -74,9 +74,68 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
-            gap: 10px;
+            gap: 15px;
             flex-wrap: wrap;
             align-items: center;
+        }
+
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            background-color: var(--secondary-blue);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-btn:hover {
+            background-color: var(--primary-blue);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            z-index: 1000;
+            top: 100%;
+            left: 0;
+            border: 1px solid var(--gray-light);
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--light-blue);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
         }
 
         .btn {
@@ -115,6 +174,33 @@
         .btn-danger {
             background-color: var(--danger-red);
             color: white;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-with-button input {
+            flex: 1;
+        }
+
+        .generate-btn {
+            background-color: var(--warning-orange);
+            color: var(--gray-dark);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: background-color 0.3s;
+        }
+
+        .generate-btn:hover {
+            background-color: #e0a800;
         }
 
         /* Fixed progress bar */
@@ -582,6 +668,45 @@
             margin-bottom: 10px;
         }
 
+        /* New styles for conditional fields */
+        .conditional-section {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid var(--secondary-blue);
+        }
+
+        .conditional-section.visible {
+            display: block;
+        }
+
+        .dependents-container {
+            border: 1px solid var(--gray-light);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .dependent-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--gray-light);
+            margin-bottom: 10px;
+        }
+
+        .dependent-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .fee-structure-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateY(20px); }
             50% { opacity: 1; transform: translateY(0); }
@@ -666,9 +791,22 @@
                 min-width: 200px;
                 right: 10px;
             }
+
+            .dropdown-content {
+                min-width: 150px;
+            }
+
+            .input-with-button {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-with-button input {
+                margin-bottom: 10px;
+            }
         }
 
-/* Modal styles for load form dialog */
+        /* Modal styles for load form dialog */
         .modal-table {
             width: 100%;
             border-collapse: collapse;
@@ -737,15 +875,22 @@
 
     <div class="container">
         <div class="form-controls">
-    <button class="btn btn-primary" onclick="saveForm()">💾 Save Form</button>
-    <button class="btn btn-primary" onclick="loadSavedForms()">📁 Load Saved Form</button>
-    <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
-    <button class="btn btn-success" onclick="generateSuitabilityReport()">📄 Generate Client Report</button>
-    <button class="btn btn-warning" onclick="printForm()">🖨️ Print</button>
-    <button class="btn btn-danger" onclick="clearForm()">🗑️ Clear Form</button>
-    <button class="btn btn-primary" onclick="testDatabaseConnection()" title="Test Database Connection">🔄 Test DB</button>
-    <a href="/dashboard.html" target="_blank" class="btn btn-primary" style="background-color: #FFC107; color: #333;">📈 View Dashboard</a>
-</div>
+            <div class="dropdown-container">
+                <button class="dropdown-btn" onclick="toggleDropdown()">
+                    📁 Form Actions <span style="font-size: 12px;">▼</span>
+                </button>
+                <div class="dropdown-content" id="formActionsDropdown">
+                    <div class="dropdown-item" onclick="saveForm()">💾 Save Form</div>
+                    <div class="dropdown-item" onclick="loadSavedForms()">📁 Load Saved Form</div>
+                    <div class="dropdown-item" onclick="exportToExcel()">📊 Export to Excel</div>
+                    <div class="dropdown-item" onclick="generateSuitabilityReport()">📄 Generate Client Report</div>
+                    <div class="dropdown-item" onclick="printForm()">🖨️ Print Form</div>
+                    <div class="dropdown-item" onclick="clearForm()">🗑️ Clear Form</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="generateSuitabilityReport()">📄 Generate Report</button>
+            <a href="dashboard.html" target="_blank" class="btn btn-primary" style="background-color: #FFC107; color: #333;">📈 View Dashboard</a>
+        </div>
 
         <div class="validation-summary" id="validationSummary">
             <h4>⚠️ Please correct the following errors:</h4>
@@ -764,14 +909,17 @@
                 </div>
                 <div class="section-content">
                     <div class="section-tooltip">
-                        <strong>Section Guidance:</strong> Capture complete client information including personal details, advice scope, and financial objectives. Ensure all mandatory fields are completed for FCA compliance. Verify client identity documents match the information provided.
+                        <strong>Section Guidance:</strong> Capture complete client information including personal details, estate planning requirements, advice scope, and financial objectives. Ensure all mandatory fields are completed for FCA compliance. Verify client identity documents match the information provided.
                     </div>
                     
                     <h3>Personal Information</h3>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="clientRef" class="required">Client Reference</label>
-                            <input type="text" id="clientRef" name="clientRef" required pattern="[A-Za-z0-9-]+" title="Letters, numbers and hyphens only">
+                            <div class="input-with-button">
+                                <input type="text" id="clientRef" name="clientRef" required pattern="[A-Za-z0-9-]+" title="Letters, numbers and hyphens only">
+                                <button type="button" class="generate-btn" onclick="generateClientRef()">🎲 Generate</button>
+                            </div>
                             <span class="field-error"></span>
                         </div>
                         <div class="form-group">
@@ -868,45 +1016,208 @@
                         </div>
                     </div>
 
+                    <!-- NEW ESTATE PLANNING SECTION -->
+                    <h3 style="margin-top: 30px;">Estate Planning & Family Details</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="maritalStatus" class="required">Marital Status</label>
+                            <select id="maritalStatus" name="maritalStatus" required onchange="toggleSpouseDetails()">
+                                <option value="">Select Status</option>
+                                <option value="Single">Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Civil Partnership">Civil Partnership</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Separated">Separated</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientHealthStatus">Client Health Status</label>
+                            <select id="clientHealthStatus" name="clientHealthStatus">
+                                <option value="">Select Status</option>
+                                <option value="Excellent">Excellent</option>
+                                <option value="Good">Good</option>
+                                <option value="Fair">Fair</option>
+                                <option value="Poor">Poor</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Spouse/Partner Details - Conditional -->
+                    <div class="conditional-section" id="spouseDetails">
+                        <h4>Spouse/Civil Partner Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="spouseName">Spouse/Civil Partner Name</label>
+                                <input type="text" id="spouseName" name="spouseName" pattern="[A-Za-z\s-']+" title="Letters only">
+                            </div>
+                            <div class="form-group">
+                                <label for="spouseDob">Spouse/Civil Partner Date of Birth</label>
+                                <input type="date" id="spouseDob" name="spouseDob">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="spouseNI">Spouse/Civil Partner NI Number</label>
+                                <input type="text" id="spouseNI" name="spouseNI" pattern="[A-Za-z]{2}[0-9]{6}[A-Za-z]" placeholder="AB123456C" style="text-transform: uppercase;">
+                            </div>
+                            <div class="form-group">
+                                <label for="spouseHealthStatus">Spouse/Civil Partner Health Status</label>
+                                <select id="spouseHealthStatus" name="spouseHealthStatus">
+                                    <option value="">Select Status</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                    <option value="Prefer not to say">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divorce Details - Conditional -->
+                    <div class="conditional-section" id="divorceDetails">
+                        <h4>Divorce Settlement Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="divorceFinalised">Has the divorce been finalised?</label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="divorce_yes" name="divorceFinalised" value="Yes">
+                                        <label for="divorce_yes">Yes</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="divorce_no" name="divorceFinalised" value="No">
+                                        <label for="divorce_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="divorceSettled">Has the financial settlement been completed?</label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="settlement_yes" name="divorceSettled" value="Yes">
+                                        <label for="settlement_yes">Yes</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="settlement_no" name="divorceSettled" value="No">
+                                        <label for="settlement_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="pensionImplications">Any implications for pension arrangements?</label>
+                            <textarea id="pensionImplications" name="pensionImplications" rows="3" placeholder="Describe any pension sharing orders, offsetting arrangements, or ongoing obligations..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Dependents Section -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="hasDependents">Do you have any dependents?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="dependents_yes" name="hasDependents" value="Yes" onchange="toggleDependents()">
+                                <label for="dependents_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="dependents_no" name="hasDependents" value="No" onchange="toggleDependents()">
+                                <label for="dependents_no">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conditional-section" id="dependentsSection">
+                        <div class="dependents-container">
+                            <h4>Dependents Information</h4>
+                            <div id="dependentsList">
+                                <div class="dependent-item">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Dependent Name</label>
+                                            <input type="text" name="dependentName[]" placeholder="Full name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Relationship</label>
+                                            <select name="dependentRelationship[]">
+                                                <option value="">Select</option>
+                                                <option value="Child">Child</option>
+                                                <option value="Stepchild">Stepchild</option>
+                                                <option value="Parent">Parent</option>
+                                                <option value="Sibling">Sibling</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Age</label>
+                                            <input type="number" name="dependentAge[]" min="0" max="100" placeholder="Age">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Health Status</label>
+                                            <select name="dependentHealth[]">
+                                                <option value="">Select</option>
+                                                <option value="Excellent">Excellent</option>
+                                                <option value="Good">Good</option>
+                                                <option value="Fair">Fair</option>
+                                                <option value="Poor">Poor</option>
+                                                <option value="Special needs">Special needs</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="remove-btn" onclick="removeDependent(this)" style="margin-top: 10px;">Remove Dependent</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="addDependent()" style="margin-top: 10px;">+ Add Another Dependent</button>
+                        </div>
+                    </div>
+
                     <h3 style="margin-top: 30px;">Advice Scope</h3>
                     <div class="form-group">
-                        <label for="adviceType" class="required">Advice Type</label>
+                        <label for="adviceType" class="required">Primary Advice Focus</label>
                         <select id="adviceType" name="adviceType" required>
-                            <option value="">Select Type</option>
-                            <option value="Full">Full Financial Planning</option>
-                            <option value="Investment">Investment Only</option>
-                            <option value="Pension">Pension Only</option>
-                            <option value="Protection">Protection Only</option>
-                            <option value="Mortgage">Mortgage Only</option>
+                            <option value="">Select Primary Focus</option>
+                            <option value="Full">Comprehensive Financial Planning</option>
+                            <option value="Investment">Investment Planning</option>
+                            <option value="Pension">Pension & Retirement Planning</option>
+                            <option value="Protection">Protection Planning</option>
+                            <option value="Estate">Estate Planning</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Areas of Advice
+                        <label>Areas of Advice Required
                             <span class="tooltip">
                                 <span class="tooltip-icon">?</span>
-                                <span class="tooltip-content">Select all areas relevant to this advice</span>
+                                <span class="tooltip-content">Select all areas relevant to this advice engagement</span>
                             </span>
                         </label>
                         <div class="checkbox-group">
                             <div class="checkbox-item">
-                                <input type="checkbox" id="area_investment" name="adviceAreas" value="Investment">
+                                <input type="checkbox" id="area_investment" name="adviceAreas" value="Investment Planning">
                                 <label for="area_investment">Investment Planning</label>
                             </div>
                             <div class="checkbox-item">
-                                <input type="checkbox" id="area_pension" name="adviceAreas" value="Pension">
+                                <input type="checkbox" id="area_pension" name="adviceAreas" value="Pension Planning">
                                 <label for="area_pension">Pension Planning</label>
                             </div>
                             <div class="checkbox-item">
-                                <input type="checkbox" id="area_retirement" name="adviceAreas" value="Retirement">
-                                <label for="area_retirement">Retirement Income</label>
+                                <input type="checkbox" id="area_retirement" name="adviceAreas" value="Retirement Income">
+                                <label for="area_retirement">Retirement Income Planning</label>
                             </div>
                             <div class="checkbox-item">
-                                <input type="checkbox" id="area_protection" name="adviceAreas" value="Protection">
-                                <label for="area_protection">Protection</label>
+                                <input type="checkbox" id="area_protection" name="adviceAreas" value="Protection Planning">
+                                <label for="area_protection">Protection Planning</label>
                             </div>
                             <div class="checkbox-item">
-                                <input type="checkbox" id="area_estate" name="adviceAreas" value="Estate">
+                                <input type="checkbox" id="area_estate" name="adviceAreas" value="Estate Planning">
                                 <label for="area_estate">Estate Planning</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="area_tax" name="adviceAreas" value="Tax Planning">
+                                <label for="area_tax">Tax Planning</label>
                             </div>
                         </div>
                     </div>
@@ -949,7 +1260,7 @@
                 </div>
                 <div class="section-content">
                     <div class="section-tooltip">
-                        <strong>Section Guidance:</strong> Complete a thorough financial assessment including all income sources, expenditure, assets, and liabilities. Ensure accuracy as this forms the basis for affordability assessments and recommendations. Include all pension arrangements for retirement planning.
+                        <strong>Section Guidance:</strong> Complete a thorough financial assessment including all income sources, expenditure, assets, liabilities, and estate planning arrangements. Ensure accuracy as this forms the basis for affordability assessments and recommendations. Include all pension arrangements for retirement planning.
                     </div>
                     
                     <h3>Income Analysis</h3>
@@ -959,7 +1270,6 @@
                                 <tr>
                                     <th>Income Source</th>
                                     <th>Current Annual (£)</th>
-                                    <th>Expected Change (£)</th>
                                     <th>Notes</th>
                                 </tr>
                             </thead>
@@ -967,43 +1277,36 @@
                                 <tr>
                                     <td>Employment Income</td>
                                     <td><input type="number" name="income_employment_current" min="0" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()" placeholder="£20,000-100,000"></td>
-                                    <td><input type="number" name="income_employment_expected" step="1" onchange="calculateTotals(); updateProgress()" oninput="updateProgress()"></td>
-                                    <td><input type="text" name="income_employment_notes" oninput="updateProgress()"></td>
+                                    <td><input type="text" name="income_employment_notes" oninput="updateProgress()" placeholder="Include bonuses, benefits, etc."></td>
                                 </tr>
                                 <tr>
                                     <td>Self-Employment Income</td>
                                     <td><input type="number" name="income_self_current" min="0" step="1" onchange="calculateTotals()" placeholder="£15,000-80,000"></td>
-                                    <td><input type="number" name="income_self_expected" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_self_notes"></td>
+                                    <td><input type="text" name="income_self_notes" placeholder="Net profit, dividends, etc."></td>
                                 </tr>
                                 <tr>
                                     <td>Pension Income</td>
                                     <td><input type="number" name="income_pension_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-50,000"></td>
-                                    <td><input type="number" name="income_pension_expected" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_pension_notes"></td>
+                                    <td><input type="text" name="income_pension_notes" placeholder="State, DB, drawdown"></td>
                                 </tr>
                                 <tr>
                                     <td>Investment Income</td>
                                     <td><input type="number" name="income_investment_current" min="0" step="1" onchange="calculateTotals()" placeholder="£1,000-30,000"></td>
-                                    <td><input type="number" name="income_investment_expected" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_investment_notes"></td>
+                                    <td><input type="text" name="income_investment_notes" placeholder="Dividends, interest, rent"></td>
                                 </tr>
                                 <tr>
                                     <td>Rental Income</td>
                                     <td><input type="number" name="income_rental_current" min="0" step="1" onchange="calculateTotals()" placeholder="£5,000-25,000"></td>
-                                    <td><input type="number" name="income_rental_expected" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_rental_notes"></td>
+                                    <td><input type="text" name="income_rental_notes" placeholder="Net rental income after costs"></td>
                                 </tr>
                                 <tr>
                                     <td>Other Income</td>
                                     <td><input type="number" name="income_other_current" min="0" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="number" name="income_other_expected" step="1" onchange="calculateTotals()"></td>
-                                    <td><input type="text" name="income_other_notes"></td>
+                                    <td><input type="text" name="income_other_notes" placeholder="Benefits, maintenance, etc."></td>
                                 </tr>
                                 <tr class="auto-calc">
                                     <td><strong>Total Income</strong></td>
                                     <td><strong id="totalIncomeCurrent">£0</strong></td>
-                                    <td><strong id="totalIncomeExpected">£0</strong></td>
                                     <td></td>
                                 </tr>
                             </tbody>
@@ -1084,6 +1387,97 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- NEW ESTATE PLANNING SECTIONS -->
+                    <h3 style="margin-top: 30px;">Estate Planning Arrangements</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hasWill">Do you have a Will?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="will_yes" name="hasWill" value="Yes" onchange="toggleWillDetails()">
+                                    <label for="will_yes">Yes</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="will_no" name="hasWill" value="No" onchange="toggleWillDetails()">
+                                    <label for="will_no">No</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="propertyOwnership">Property Ownership Type</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" id="joint_tenants" name="propertyOwnership" value="Joint Tenants">
+                                    <label for="joint_tenants">Joint Tenants</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="tenants_common" name="propertyOwnership" value="Tenants in Common">
+                                    <label for="tenants_common">Tenants in Common</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="sole_ownership" name="propertyOwnership" value="Sole Ownership">
+                                    <label for="sole_ownership">Sole Ownership</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="not_applicable" name="propertyOwnership" value="Not Applicable">
+                                    <label for="not_applicable">Not Applicable</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="conditional-section" id="willDetails">
+                        <h4>Will Information</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="willUpToDate">Is your Will up to date?</label>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" id="will_current_yes" name="willUpToDate" value="Yes">
+                                        <label for="will_current_yes">Yes</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" id="will_current_no" name="willUpToDate" value="No">
+                                        <label for="will_current_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="willLocation">Where is your Will held?</label>
+                                <input type="text" id="willLocation" name="willLocation" placeholder="e.g., Solicitor name, safe deposit box">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="willBasicTerms">Basic terms of Will</label>
+                            <textarea id="willBasicTerms" name="willBasicTerms" rows="3" placeholder="Brief summary of main beneficiaries and provisions..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="willNotes">Additional Will Notes</label>
+                            <textarea id="willNotes" name="willNotes" rows="2" placeholder="Any other relevant information about the Will..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Lasting Power of Attorney (LPA)</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="lpa_financial" name="lpaTypes" value="Financial">
+                                    <label for="lpa_financial">Financial Affairs LPA in place</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="lpa_health" name="lpaTypes" value="Health">
+                                    <label for="lpa_health">Health & Welfare LPA in place</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="giftingHistory">Gifting History</label>
+                            <textarea id="giftingHistory" name="giftingHistory" rows="3" placeholder="Details of any significant gifts made in the last 7 years (amount, recipient, date)..."></textarea>
+                        </div>
                     </div>
 
                     <h3 style="margin-top: 30px;">Assets & Liabilities</h3>
@@ -1185,7 +1579,85 @@
                         </div>
                     </div>
 
-                    <h3 style="margin-top: 30px;">Pension Arrangements</h3>
+                    <!-- ENHANCED PENSION INCOME BREAKDOWN -->
+                    <h3 style="margin-top: 30px;">Detailed Pension Income Sources</h3>
+                    
+                    <h4 style="color: var(--secondary-blue); margin-bottom: 15px;">1. Secured Income Sources</h4>
+                    <div class="table-container">
+                        <table id="securedIncomeTable">
+                            <thead>
+                                <tr>
+                                    <th>Source Type</th>
+                                    <th>Provider</th>
+                                    <th>Annual Income (£)</th>
+                                    <th>Index Linked?</th>
+                                    <th>Notes</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="securedIncomeTableBody">
+                                <tr>
+                                    <td>
+                                        <select name="secured_type[]">
+                                            <option value="State Pension">State Pension</option>
+                                            <option value="DB Public">DB - Public Sector</option>
+                                            <option value="DB Private">DB - Private Sector</option>
+                                            <option value="Annuity Lifetime">Annuity - Lifetime</option>
+                                            <option value="Annuity Term">Annuity - Fixed Term</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="secured_provider[]" placeholder="e.g., DWP, Local Authority"></td>
+                                    <td><input type="number" name="secured_income[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£8,000-30,000"></td>
+                                    <td>
+                                        <select name="secured_indexed[]">
+                                            <option value="Yes">Yes</option>
+                                            <option value="No">No</option>
+                                            <option value="Partial">Partial</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="secured_notes[]" placeholder="Dependent benefits, guarantee period, etc."></td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addSecuredIncomeRow()">+ Add Secured Income</button>
+                    </div>
+
+                    <h4 style="color: var(--secondary-blue); margin: 30px 0 15px 0;">2. Unsecured Income Sources</h4>
+                    <div class="table-container">
+                        <table id="unsecuredIncomeTable">
+                            <thead>
+                                <tr>
+                                    <th>Source Type</th>
+                                    <th>Provider</th>
+                                    <th>Fund Value (£)</th>
+                                    <th>Annual Withdrawal (£)</th>
+                                    <th>Notes</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unsecuredIncomeTableBody">
+                                <tr>
+                                    <td>
+                                        <select name="unsecured_type[]">
+                                            <option value="DC Drawdown">DC Drawdown</option>
+                                            <option value="UFPLS">UFPLS</option>
+                                            <option value="SIPP Drawdown">SIPP Drawdown</option>
+                                            <option value="Investment Drawdown">Investment Drawdown</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" name="unsecured_provider[]" placeholder="e.g., Aviva, Scottish Widows"></td>
+                                    <td><input type="number" name="unsecured_value[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£100,000-500,000"></td>
+                                    <td><input type="number" name="unsecured_withdrawal[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£4,000-20,000"></td>
+                                    <td><input type="text" name="unsecured_notes[]" placeholder="Withdrawal rate, review frequency, etc."></td>
+                                    <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-primary add-row-btn" onclick="addUnsecuredIncomeRow()">+ Add Unsecured Income</button>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Other Pension Arrangements</h3>
                     <div class="table-container">
                         <table id="pensionTable">
                             <thead>
@@ -1491,45 +1963,118 @@
                 </div>
                 <div class="section-content">
                     <div class="section-tooltip">
-                        <strong>Section Guidance:</strong> Document all options considered for the client, including advantages and disadvantages of each. This demonstrates a thorough advice process and helps justify your final recommendation.
+                        <strong>Section Guidance:</strong> Document all options considered across all advice areas including advantages and disadvantages of each. This demonstrates a thorough advice process and helps justify your final recommendation.
                     </div>
                     
-                    <h3>Options Assessment</h3>
+                    <!-- EXPANDED OPTIONS ASSESSMENT -->
+                    <h3>Investment Planning Options</h3>
                     <div class="checkbox-group">
                         <div class="checkbox-item">
-                            <input type="checkbox" id="opt_nothing" name="options" value="Do Nothing">
-                            <label for="opt_nothing">Do Nothing</label>
+                            <input type="checkbox" id="inv_cash" name="investmentOptions" value="Hold in Cash">
+                            <label for="inv_cash">Hold in Cash/Deposits</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="opt_cash" name="options" value="Hold in Cash">
-                            <label for="opt_cash">Hold in Cash</label>
+                            <input type="checkbox" id="inv_bonds" name="investmentOptions" value="Bond Investments">
+                            <label for="inv_bonds">Bond/Fixed Income Investments</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="opt_annuity" name="options" value="Purchase Annuity">
-                            <label for="opt_annuity">Purchase Annuity</label>
+                            <input type="checkbox" id="inv_equities" name="investmentOptions" value="Equity Investments">
+                            <label for="inv_equities">Equity Investments</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="opt_drawdown" name="options" value="Flexi-Access Drawdown">
-                            <label for="opt_drawdown">Flexi-Access Drawdown</label>
+                            <input type="checkbox" id="inv_balanced" name="investmentOptions" value="Balanced Portfolio">
+                            <label for="inv_balanced">Balanced Portfolio Approach</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="opt_ufpls" name="options" value="UFPLS">
-                            <label for="opt_ufpls">Uncrystallised Funds Pension Lump Sum (UFPLS)</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="opt_hybrid" name="options" value="Hybrid">
-                            <label for="opt_hybrid">Hybrid Approach</label>
+                            <input type="checkbox" id="inv_alternatives" name="investmentOptions" value="Alternative Investments">
+                            <label for="inv_alternatives">Alternative Investments</label>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label for="optionsAdvantages">Advantages of Each Option</label>
-                        <textarea id="optionsAdvantages" name="optionsAdvantages" rows="4" placeholder="Detail the advantages of each option considered..."></textarea>
+                    <h3 style="margin-top: 30px;">Pension Planning Options</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_nothing" name="pensionOptions" value="Do Nothing">
+                            <label for="pen_nothing">Do Nothing</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_annuity" name="pensionOptions" value="Purchase Annuity">
+                            <label for="pen_annuity">Purchase Annuity</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_drawdown" name="pensionOptions" value="Flexi-Access Drawdown">
+                            <label for="pen_drawdown">Flexi-Access Drawdown</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_ufpls" name="pensionOptions" value="UFPLS">
+                            <label for="pen_ufpls">Uncrystallised Funds Pension Lump Sum (UFPLS)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_hybrid" name="pensionOptions" value="Hybrid Approach">
+                            <label for="pen_hybrid">Hybrid Approach (Combination)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="pen_transfer" name="pensionOptions" value="Pension Transfer">
+                            <label for="pen_transfer">Pension Transfer/Consolidation</label>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Protection Planning Options</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="prot_life" name="protectionOptions" value="Life Assurance">
+                            <label for="prot_life">Life Assurance</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="prot_critical" name="protectionOptions" value="Critical Illness">
+                            <label for="prot_critical">Critical Illness Cover</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="prot_income" name="protectionOptions" value="Income Protection">
+                            <label for="prot_income">Income Protection</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="prot_family" name="protectionOptions" value="Family Income Benefit">
+                            <label for="prot_family">Family Income Benefit</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="prot_none" name="protectionOptions" value="No Protection Needed">
+                            <label for="prot_none">No Additional Protection Needed</label>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Estate Planning Options</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="est_will" name="estateOptions" value="Will Writing">
+                            <label for="est_will">Will Writing/Review</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="est_trust" name="estateOptions" value="Trust Planning">
+                            <label for="est_trust">Trust Planning</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="est_gifts" name="estateOptions" value="Gifting Strategy">
+                            <label for="est_gifts">Gifting Strategy</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="est_iht" name="estateOptions" value="IHT Planning">
+                            <label for="est_iht">Inheritance Tax Planning</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="est_lpa" name="estateOptions" value="LPA Setup">
+                            <label for="est_lpa">Lasting Power of Attorney Setup</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <label for="optionsAdvantages">Advantages of Each Option Considered</label>
+                        <textarea id="optionsAdvantages" name="optionsAdvantages" rows="5" placeholder="Detail the advantages of each option considered across all advice areas..."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="optionsDisadvantages">Disadvantages of Each Option</label>
-                        <textarea id="optionsDisadvantages" name="optionsDisadvantages" rows="4" placeholder="Detail the disadvantages of each option considered..."></textarea>
+                        <label for="optionsDisadvantages">Disadvantages of Each Option Considered</label>
+                        <textarea id="optionsDisadvantages" name="optionsDisadvantages" rows="5" placeholder="Detail the disadvantages of each option considered across all advice areas..."></textarea>
                     </div>
 
                     <h3 style="margin-top: 30px;">Product Research</h3>
@@ -1691,25 +2236,83 @@
                 </div>
                 <div class="section-content">
                     <div class="section-tooltip">
-                        <strong>Section Guidance:</strong> Full transparency on all costs is required. Include initial and ongoing charges for advice, platform, and investments. The total ongoing charge calculation helps assess value for money.
+                        <strong>Section Guidance:</strong> Full transparency on all costs is required. Include initial and ongoing charges for advice, platform, and investments. Choose between percentage-based or flat fee structure as appropriate for the client.
                     </div>
                     
-                    <h3>Adviser Charges</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="initialAdviserCharge">Initial Adviser Charge (£)</label>
-                            <input type="number" id="initialAdviserCharge" name="initialAdviserCharge" min="0" step="1" onchange="calculateTotalCharges()" placeholder="£1,000-5,000">
-                        </div>
-                        <div class="form-group">
-                            <label for="initialAdviserChargePercent">Initial Adviser Charge (%)</label>
-                            <input type="number" id="initialAdviserChargePercent" name="initialAdviserChargePercent" min="0" max="10" step="0.1" onchange="calculateTotalCharges()" placeholder="1-3%">
+                    <!-- NEW FEE STRUCTURE SELECTION -->
+                    <h3>Fee Structure</h3>
+                    <div class="form-group">
+                        <label for="feeStructure" class="required">Primary Fee Structure</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="fee_percentage" name="feeStructure" value="Percentage" required onchange="toggleFeeStructure()">
+                                <label for="fee_percentage">Percentage-based fees</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="fee_flat" name="feeStructure" value="Flat Fee" required onchange="toggleFeeStructure()">
+                                <label for="fee_flat">Flat fee structure</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="fee_hybrid" name="feeStructure" value="Hybrid" required onchange="toggleFeeStructure()">
+                                <label for="fee_hybrid">Hybrid approach</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="ongoingAdviserCharge">Ongoing Adviser Charge (% p.a.)</label>
-                            <input type="number" id="ongoingAdviserCharge" name="ongoingAdviserCharge" min="0" max="5" step="0.1" onchange="calculateTotalCharges()" placeholder="0.5-1%">
+
+                    <!-- Percentage-based Fee Section -->
+                    <div class="fee-structure-section" id="percentageFeeSection">
+                        <h3>Percentage-based Adviser Charges</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="initialAdviserChargePercent">Initial Adviser Charge (%)</label>
+                                <input type="number" id="initialAdviserChargePercent" name="initialAdviserChargePercent" min="0" max="10" step="0.1" onchange="calculateTotalCharges()" placeholder="1-3%">
+                            </div>
+                            <div class="form-group">
+                                <label for="ongoingAdviserCharge">Ongoing Adviser Charge (% p.a.)</label>
+                                <input type="number" id="ongoingAdviserCharge" name="ongoingAdviserCharge" min="0" max="5" step="0.1" onchange="calculateTotalCharges()" placeholder="0.5-1%">
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Flat Fee Section -->
+                    <div class="fee-structure-section" id="flatFeeSection">
+                        <h3>Flat Fee Structure</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="initialFlatFee">Initial Advice Fee (£)</label>
+                                <input type="number" id="initialFlatFee" name="initialFlatFee" min="0" step="1" placeholder="£1,000-5,000">
+                            </div>
+                            <div class="form-group">
+                                <label for="ongoingFlatFee">Ongoing Service Fee (£ p.a.)</label>
+                                <input type="number" id="ongoingFlatFee" name="ongoingFlatFee" min="0" step="1" placeholder="£500-2,000">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="flatFeeDescription">Flat Fee Service Description</label>
+                            <textarea id="flatFeeDescription" name="flatFeeDescription" rows="3" placeholder="Describe what services are included in the flat fee..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Hybrid Fee Section -->
+                    <div class="fee-structure-section" id="hybridFeeSection">
+                        <h3>Hybrid Fee Structure</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="hybridInitialFlat">Initial Flat Fee (£)</label>
+                                <input type="number" id="hybridInitialFlat" name="hybridInitialFlat" min="0" step="1" placeholder="£500-2,000">
+                            </div>
+                            <div class="form-group">
+                                <label for="hybridOngoingPercent">Ongoing Percentage (% p.a.)</label>
+                                <input type="number" id="hybridOngoingPercent" name="hybridOngoingPercent" min="0" max="3" step="0.1" onchange="calculateTotalCharges()" placeholder="0.25-0.75%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="hybridDescription">Hybrid Structure Description</label>
+                            <textarea id="hybridDescription" name="hybridDescription" rows="3" placeholder="Explain the hybrid fee arrangement..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 30px;">
                         <div class="form-group">
                             <label for="adviserChargeMethod">Payment Method</label>
                             <select id="adviserChargeMethod" name="adviserChargeMethod">
@@ -1717,6 +2320,10 @@
                                 <option value="Direct">Direct payment</option>
                                 <option value="Both">Combination</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="initialAdviserCharge">Initial Adviser Charge (£)</label>
+                            <input type="number" id="initialAdviserCharge" name="initialAdviserCharge" min="0" step="1" onchange="calculateTotalCharges()" placeholder="£1,000-5,000">
                         </div>
                     </div>
 
@@ -1836,10 +2443,10 @@
                     <h3>Adviser Assessment</h3>
                     <div class="form-group">
                         <label for="adviserName" class="required">Adviser Name</label>
-                        <select id="adviserName" name="adviserName" required>
+                        <select id="adviserName" name="adviserName" required onchange="updateAdviserNumber()">
                             <option value="">Select Adviser</option>
-                            <option value="John Page">John Page</option>
-                            <option value="Robin Mackrill">Robin Mackrill</option>
+                            <option value="John Page" data-ref="JWP00003">John Page</option>
+                            <option value="Robin Mackrill" data-ref="RJM00124">Robin Mackrill</option>
                         </select>
                         <span class="field-error"></span>
                     </div>
@@ -1847,10 +2454,10 @@
                         <label for="adviserNumber" class="required">FCA Reference Number
                             <span class="tooltip">
                                 <span class="tooltip-icon">?</span>
-                                <span class="tooltip-content">Enter the adviser's 7-digit FCA individual reference number (e.g., 1234567)</span>
+                                <span class="tooltip-content">Enter the adviser's FCA individual reference number (e.g., JWP00003 or RJM00124)</span>
                             </span>
                         </label>
-                        <input type="text" id="adviserNumber" name="adviserNumber" required pattern="[0-9]{7}" title="Enter a 7-digit FCA reference number" placeholder="1234567" maxlength="7">
+                        <input type="text" id="adviserNumber" name="adviserNumber" required pattern="[A-Z]{3}[0-9]{5}" title="Enter FCA reference number in format ABC12345" placeholder="JWP00003" maxlength="8">
                         <span class="field-error"></span>
                     </div>
                     <div class="form-group">
@@ -2118,6 +2725,45 @@
             document.body.appendChild(errorDiv);
         }
 
+        // Dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('formActionsDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+        // Generate client reference
+        function generateClientRef() {
+            const timestamp = new Date().toISOString().slice(2, 10).replace(/-/g, ''); // YYMMDD
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            const clientRef = `C${timestamp}${random}`;
+            document.getElementById('clientRef').value = clientRef;
+            updateProgress();
+        }
+
+        // Update adviser number based on selection
+        function updateAdviserNumber() {
+            const adviserSelect = document.getElementById('adviserName');
+            const adviserNumberInput = document.getElementById('adviserNumber');
+            const selectedOption = adviserSelect.options[adviserSelect.selectedIndex];
+            
+            if (selectedOption.dataset.ref) {
+                adviserNumberInput.value = selectedOption.dataset.ref;
+            }
+        }
+
         // Country list for tax residency
         const countries = [
             "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", 
@@ -2145,6 +2791,173 @@
             "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", 
             "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
         ];
+
+        // NEW ESTATE PLANNING FUNCTIONS
+        
+        // Toggle spouse/partner details based on marital status
+        function toggleSpouseDetails() {
+            const maritalStatus = document.getElementById('maritalStatus').value;
+            const spouseDetails = document.getElementById('spouseDetails');
+            const divorceDetails = document.getElementById('divorceDetails');
+            
+            if (maritalStatus === 'Married' || maritalStatus === 'Civil Partnership' || maritalStatus === 'Separated') {
+                spouseDetails.classList.add('visible');
+            } else {
+                spouseDetails.classList.remove('visible');
+            }
+            
+            if (maritalStatus === 'Divorced') {
+                divorceDetails.classList.add('visible');
+                spouseDetails.classList.remove('visible');
+            } else {
+                divorceDetails.classList.remove('visible');
+            }
+        }
+
+        // Toggle dependents section
+        function toggleDependents() {
+            const hasDependents = document.querySelector('input[name="hasDependents"]:checked')?.value;
+            const dependentsSection = document.getElementById('dependentsSection');
+            
+            if (hasDependents === 'Yes') {
+                dependentsSection.classList.add('visible');
+            } else {
+                dependentsSection.classList.remove('visible');
+            }
+        }
+
+        // Add dependent
+        function addDependent() {
+            const dependentsList = document.getElementById('dependentsList');
+            const newDependent = document.createElement('div');
+            newDependent.className = 'dependent-item';
+            newDependent.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dependent Name</label>
+                        <input type="text" name="dependentName[]" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship</label>
+                        <select name="dependentRelationship[]">
+                            <option value="">Select</option>
+                            <option value="Child">Child</option>
+                            <option value="Stepchild">Stepchild</option>
+                            <option value="Parent">Parent</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" name="dependentAge[]" min="0" max="100" placeholder="Age">
+                    </div>
+                    <div class="form-group">
+                        <label>Health Status</label>
+                        <select name="dependentHealth[]">
+                            <option value="">Select</option>
+                            <option value="Excellent">Excellent</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                            <option value="Special needs">Special needs</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" class="remove-btn" onclick="removeDependent(this)" style="margin-top: 10px;">Remove Dependent</button>
+            `;
+            dependentsList.appendChild(newDependent);
+        }
+
+        // Remove dependent
+        function removeDependent(button) {
+            button.closest('.dependent-item').remove();
+        }
+
+        // Toggle will details
+        function toggleWillDetails() {
+            const hasWill = document.querySelector('input[name="hasWill"]:checked')?.value;
+            const willDetails = document.getElementById('willDetails');
+            
+            if (hasWill === 'Yes') {
+                willDetails.classList.add('visible');
+            } else {
+                willDetails.classList.remove('visible');
+            }
+        }
+
+        // Toggle fee structure sections
+        function toggleFeeStructure() {
+            const feeStructure = document.querySelector('input[name="feeStructure"]:checked')?.value;
+            const percentageSection = document.getElementById('percentageFeeSection');
+            const flatSection = document.getElementById('flatFeeSection');
+            const hybridSection = document.getElementById('hybridFeeSection');
+            
+            // Hide all sections first
+            percentageSection.style.display = 'none';
+            flatSection.style.display = 'none';
+            hybridSection.style.display = 'none';
+            
+            // Show relevant section
+            if (feeStructure === 'Percentage') {
+                percentageSection.style.display = 'block';
+            } else if (feeStructure === 'Flat Fee') {
+                flatSection.style.display = 'block';
+            } else if (feeStructure === 'Hybrid') {
+                hybridSection.style.display = 'block';
+            }
+        }
+
+        // Add secured income row
+        function addSecuredIncomeRow() {
+            const tbody = document.getElementById('securedIncomeTableBody');
+            const newRow = tbody.insertRow(-1);
+            newRow.innerHTML = `
+                <td>
+                    <select name="secured_type[]">
+                        <option value="State Pension">State Pension</option>
+                        <option value="DB Public">DB - Public Sector</option>
+                        <option value="DB Private">DB - Private Sector</option>
+                        <option value="Annuity Lifetime">Annuity - Lifetime</option>
+                        <option value="Annuity Term">Annuity - Fixed Term</option>
+                    </select>
+                </td>
+                <td><input type="text" name="secured_provider[]" placeholder="e.g., DWP, Local Authority"></td>
+                <td><input type="number" name="secured_income[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£8,000-30,000"></td>
+                <td>
+                    <select name="secured_indexed[]">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                        <option value="Partial">Partial</option>
+                    </select>
+                </td>
+                <td><input type="text" name="secured_notes[]" placeholder="Dependent benefits, guarantee period, etc."></td>
+                <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+            `;
+        }
+
+        // Add unsecured income row
+        function addUnsecuredIncomeRow() {
+            const tbody = document.getElementById('unsecuredIncomeTableBody');
+            const newRow = tbody.insertRow(-1);
+            newRow.innerHTML = `
+                <td>
+                    <select name="unsecured_type[]">
+                        <option value="DC Drawdown">DC Drawdown</option>
+                        <option value="UFPLS">UFPLS</option>
+                        <option value="SIPP Drawdown">SIPP Drawdown</option>
+                        <option value="Investment Drawdown">Investment Drawdown</option>
+                    </select>
+                </td>
+                <td><input type="text" name="unsecured_provider[]" placeholder="e.g., Aviva, Scottish Widows"></td>
+                <td><input type="number" name="unsecured_value[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£100,000-500,000"></td>
+                <td><input type="number" name="unsecured_withdrawal[]" min="0" step="1" onchange="calculateRetirement()" placeholder="£4,000-20,000"></td>
+                <td><input type="text" name="unsecured_notes[]" placeholder="Withdrawal rate, review frequency, etc."></td>
+                <td><button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button></td>
+            `;
+        }
 
         // Initialize form
         document.addEventListener('DOMContentLoaded', async function() {
@@ -2291,7 +3104,7 @@
                     } else if (field.name === 'postcode') {
                         errorMessage = 'Enter a valid UK postcode (e.g., SW1A 1AA)';
                     } else if (field.name === 'adviserNumber') {
-                        errorMessage = 'Enter a 7-digit FCA reference number';
+                        errorMessage = 'Enter FCA reference number in format ABC12345';
                     } else if (field.type === 'tel') {
                         errorMessage = 'Please enter a valid phone number';
                     } else {
@@ -2646,22 +3459,14 @@
 
         // Calculations
         function calculateTotals() {
-            // Income calculations
+            // Income calculations - Updated to remove Expected Change column
             let totalIncomeCurrent = 0;
-            let totalIncomeExpected = 0;
             
             document.querySelectorAll('[name^="income_"][name$="_current"]').forEach(input => {
                 totalIncomeCurrent += parseFloat(input.value) || 0;
             });
             
-            document.querySelectorAll('[name^="income_"][name$="_expected"]').forEach(input => {
-                const current = parseFloat(input.name.replace('_expected', '_current')) || 0;
-                const change = parseFloat(input.value) || 0;
-                totalIncomeExpected += current + change;
-            });
-            
             document.getElementById('totalIncomeCurrent').textContent = `£${totalIncomeCurrent.toLocaleString()}`;
-            document.getElementById('totalIncomeExpected').textContent = `£${totalIncomeExpected.toLocaleString()}`;
 
             // Expenditure calculations
             let totalExpMonthly = 0;
@@ -2722,7 +3527,8 @@
         function calculateTotalCharges() {
             const ongoing = (parseFloat(document.getElementById('ongoingAdviserCharge').value) || 0) +
                            (parseFloat(document.getElementById('platformCharge').value) || 0) +
-                           (parseFloat(document.getElementById('fundCharges').value) || 0);
+                           (parseFloat(document.getElementById('fundCharges').value) || 0) +
+                           (parseFloat(document.getElementById('hybridOngoingPercent').value) || 0);
             
             document.getElementById('totalOngoingCharges').value = `${ongoing.toFixed(2)}%`;
         }
@@ -2840,58 +3646,57 @@
         }
 
         // Save and load functions with proper Supabase integration
-async function saveForm() {
-    console.log('SaveForm function started');
-
-    // Check database connection
-    if (!supabaseClient) {
-        console.error('Supabase client not initialized');
-        alert('Database connection not available. Form will be saved locally.');
-        saveToLocalStorageOnly();
-        return;
-    }
-
-    // Validate form first
-    const form = document.getElementById('suitabilityForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        updateValidationSummary();
-        alert('Please correct the validation errors before saving.');
-        return;
-    }
-
-    const formData = new FormData(document.getElementById('suitabilityForm'));
-    const data = {};
-
-    // Get all form inputs
-    for (let [key, value] of formData.entries()) {
-        if (data[key]) {
-            if (!Array.isArray(data[key])) {
-                data[key] = [data[key]];
+        async function saveForm() {
+            console.log('SaveForm function started');
+            
+            // Check database connection
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                alert('Database connection not available. Form will be saved locally.');
+                saveToLocalStorageOnly();
+                return;
             }
-            data[key].push(value);
-        } else {
-            data[key] = value;
-        }
-    }
+            
+            // Validate form first
+            const form = document.getElementById('suitabilityForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                updateValidationSummary();
+                alert('Please correct the validation errors before saving.');
+                return;
+            }
+            
+            const formData = new FormData(document.getElementById('suitabilityForm'));
+            const data = {};
+            
+            // Get all form inputs
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) {
+                        data[key] = [data[key]];
+                    }
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
 
-    // Add this line to store the completion progress
-    data.completionPercentage = document.getElementById('progressFill').textContent; // <-- THIS IS THE NEW LINE
+            // Add table data
+            data.tables = {
+                assets: getTableData('assetsTableBody'),
+                liabilities: getTableData('liabilitiesTableBody'),
+                pensions: getTableData('pensionTableBody'),
+                experience: getTableData('experienceTableBody'),
+                securedIncome: getTableData('securedIncomeTableBody'),
+                unsecuredIncome: getTableData('unsecuredIncomeTableBody')
+            };
 
-    // Add table data
-    data.tables = {
-        assets: getTableData('assetsTableBody'),
-        liabilities: getTableData('liabilitiesTableBody'),
-        pensions: getTableData('pensionTableBody'),
-        experience: getTableData('experienceTableBody')
-    };
+            // Use existing form ID
+            const formId = document.getElementById('formUniqueId').textContent;
+            data.formId = formId;
+            data.savedDate = new Date().toISOString();
 
-    // Use existing form ID
-    const formId = document.getElementById('formUniqueId').textContent;
-    data.formId = formId;
-    data.savedDate = new Date().toISOString();
-
-    console.log('Attempting to save to Supabase with form_id:', formId);
+            console.log('Attempting to save to Supabase with form_id:', formId);
 
             // Save to Supabase
             try {
@@ -2963,7 +3768,9 @@ async function saveForm() {
                 assets: getTableData('assetsTableBody'),
                 liabilities: getTableData('liabilitiesTableBody'),
                 pensions: getTableData('pensionTableBody'),
-                experience: getTableData('experienceTableBody')
+                experience: getTableData('experienceTableBody'),
+                securedIncome: getTableData('securedIncomeTableBody'),
+                unsecuredIncome: getTableData('unsecuredIncomeTableBody')
             };
 
             const formId = document.getElementById('formUniqueId').textContent;
@@ -2976,41 +3783,39 @@ async function saveForm() {
         }
 
         async function autoSave() {
-    if (!supabaseClient) {
-        console.log('Supabase not available for autosave');
-        return;
-    }
-
-    const formData = new FormData(document.getElementById('suitabilityForm'));
-    const data = {};
-
-    for (let [key, value] of formData.entries()) {
-        if (data[key]) {
-            if (!Array.isArray(data[key])) {
-                data[key] = [data[key]];
+            if (!supabaseClient) {
+                console.log('Supabase not available for autosave');
+                return;
             }
-            data[key].push(value);
-        } else {
-            data[key] = value;
-        }
-    }
 
-    // Add this line to store the completion progress
-    data.completionPercentage = document.getElementById('progressFill').textContent; // <-- THIS IS THE NEW LINE
+            const formData = new FormData(document.getElementById('suitabilityForm'));
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (!Array.isArray(data[key])) {
+                        data[key] = [data[key]];
+                    }
+                    data[key].push(value);
+                } else {
+                    data[key] = value;
+                }
+            }
 
-    data.tables = {
-        assets: getTableData('assetsTableBody'),
-        liabilities: getTableData('liabilitiesTableBody'),
-        pensions: getTableData('pensionTableBody'),
-        experience: getTableData('experienceTableBody')
-    };
+            data.tables = {
+                assets: getTableData('assetsTableBody'),
+                liabilities: getTableData('liabilitiesTableBody'),
+                pensions: getTableData('pensionTableBody'),
+                experience: getTableData('experienceTableBody'),
+                securedIncome: getTableData('securedIncomeTableBody'),
+                unsecuredIncome: getTableData('unsecuredIncomeTableBody')
+            };
 
-    data.formId = document.getElementById('formUniqueId').textContent;
-    data.savedDate = new Date().toISOString();
+            data.formId = document.getElementById('formUniqueId').textContent;
+            data.savedDate = new Date().toISOString();
 
-    // Save to localStorage first
-    localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
-
+            // Save to localStorage first
+            localStorage.setItem('IFA_Form_AutoSave', JSON.stringify(data));
 
             // Try to save to Supabase (silently in background)
             try {
@@ -3174,6 +3979,8 @@ async function saveForm() {
                         restoreTableData('liabilitiesTableBody', data.tables.liabilities);
                         restoreTableData('pensionTableBody', data.tables.pensions);
                         restoreTableData('experienceTableBody', data.tables.experience);
+                        restoreTableData('securedIncomeTableBody', data.tables.securedIncome);
+                        restoreTableData('unsecuredIncomeTableBody', data.tables.unsecuredIncome);
                     }
 
                     // Update calculations and UI
@@ -3182,6 +3989,10 @@ async function saveForm() {
                     updateProgress();
                     checkVulnerabilities();
                     toggleKnowledgeNotes();
+                    toggleSpouseDetails();
+                    toggleDependents();
+                    toggleWillDetails();
+                    toggleFeeStructure();
                     
                     // Close modal
                     const modal = document.querySelector('div[style*="position: fixed"]');
@@ -3230,6 +4041,8 @@ async function saveForm() {
                     restoreTableData('liabilitiesTableBody', data.tables.liabilities);
                     restoreTableData('pensionTableBody', data.tables.pensions);
                     restoreTableData('experienceTableBody', data.tables.experience);
+                    restoreTableData('securedIncomeTableBody', data.tables.securedIncome);
+                    restoreTableData('unsecuredIncomeTableBody', data.tables.unsecuredIncome);
                 }
 
                 calculateTotals();
@@ -3237,11 +4050,16 @@ async function saveForm() {
                 updateProgress();
                 checkVulnerabilities();
                 toggleKnowledgeNotes();
+                toggleSpouseDetails();
+                toggleDependents();
+                toggleWillDetails();
+                toggleFeeStructure();
             }
         }
 
         function getTableData(tableId) {
             const tbody = document.getElementById(tableId);
+            if (!tbody) return [];
             const rows = Array.from(tbody.rows);
             return rows.map(row => {
                 const inputs = row.querySelectorAll('input, select');
@@ -3258,99 +4076,35 @@ async function saveForm() {
             if (!data || data.length === 0) return;
             
             const tbody = document.getElementById(tableId);
+            if (!tbody) return;
+            
             tbody.innerHTML = '';
             
             data.forEach(rowData => {
-                const row = tbody.insertRow(-1);
-                let cellIndex = 0;
+                // Use appropriate add function based on table type
+                if (tableId === 'assetsTableBody') {
+                    addAssetRow();
+                } else if (tableId === 'liabilitiesTableBody') {
+                    addLiabilityRow();
+                } else if (tableId === 'pensionTableBody') {
+                    addPensionRow();
+                } else if (tableId === 'experienceTableBody') {
+                    addExperienceRow();
+                } else if (tableId === 'securedIncomeTableBody') {
+                    addSecuredIncomeRow();
+                } else if (tableId === 'unsecuredIncomeTableBody') {
+                    addUnsecuredIncomeRow();
+                }
                 
-                rowData.forEach(inputData => {
-                    if (!row.cells[cellIndex]) {
-                        row.insertCell(cellIndex);
+                // Fill in the values
+                const lastRow = tbody.rows[tbody.rows.length - 1];
+                const inputs = lastRow.querySelectorAll('input, select');
+                
+                rowData.forEach((inputData, index) => {
+                    if (inputs[index] && inputData) {
+                        inputs[index].value = inputData.value || '';
                     }
-                    
-                    let element;
-                    if (inputData.type === 'text' || inputData.type === 'number') {
-                        element = document.createElement('input');
-                        element.type = inputData.type;
-                        element.name = inputData.name;
-                        element.value = inputData.value;
-                        
-                        if (inputData.type === 'number') {
-                            element.min = "0";
-                            element.step = "1";
-                            if (inputData.name.includes('income') || inputData.name.includes('asset') || inputData.name.includes('liability')) {
-                                element.onchange = calculateTotals;
-                            }
-                            if (inputData.name.includes('pension')) {
-                                element.onchange = function() { calculateTotals(); calculateRetirement(); };
-                            }
-                        }
-                    } else if (inputData.name && inputData.name.includes('[]')) {
-                        element = document.createElement('select');
-                        element.name = inputData.name;
-                        
-                        // Add appropriate options based on the select type
-                        if (inputData.name.includes('asset_type')) {
-                            element.innerHTML = `
-                                <option value="Property">Property</option>
-                                <option value="Cash">Cash/Savings</option>
-                                <option value="Investment">Investments</option>
-                                <option value="Pension">Pension</option>
-                                <option value="Business">Business</option>
-                                <option value="Other">Other</option>
-                            `;
-                        } else if (inputData.name.includes('liability_type')) {
-                            element.innerHTML = `
-                                <option value="Mortgage">Mortgage</option>
-                                <option value="Loan">Personal Loan</option>
-                                <option value="Credit Card">Credit Card</option>
-                                <option value="Car Finance">Car Finance</option>
-                                <option value="Other">Other</option>
-                            `;
-                        } else if (inputData.name.includes('pension_type')) {
-                            element.innerHTML = `
-                                <option value="DC">Defined Contribution</option>
-                                <option value="DB">Defined Benefit</option>
-                                <option value="SIPP">SIPP</option>
-                                <option value="State">State Pension</option>
-                            `;
-                        } else if (inputData.name.includes('experience_type')) {
-                            element.innerHTML = `
-                                <option value="Cash">Cash/Deposits</option>
-                                <option value="Bonds">Bonds/Fixed Income</option>
-                                <option value="Equities">Equities/Shares</option>
-                                <option value="Funds">Mutual Funds/OEICs</option>
-                                <option value="ETFs">ETFs</option>
-                                <option value="Property">Property</option>
-                                <option value="Alternatives">Alternative Investments</option>
-                            `;
-                        } else if (inputData.name.includes('ownership')) {
-                            element.innerHTML = `
-                                <option value="Sole">Sole</option>
-                                <option value="Joint">Joint</option>
-                                <option value="Trust">Trust</option>
-                            `;
-                        } else if (inputData.name.includes('experience_current')) {
-                            element.innerHTML = `
-                                <option value="Yes">Yes</option>
-                                <option value="No">No</option>
-                            `;
-                        }
-                        
-                        element.value = inputData.value;
-                    }
-                    
-                    if (element) {
-                        row.cells[cellIndex].appendChild(element);
-                    }
-                    
-                    cellIndex++;
                 });
-                
-                // Add remove button
-                const removeCell = row.insertCell(-1);
-                removeCell.innerHTML = '<button type="button" class="remove-btn" onclick="removeRow(this)">Remove</button>';
             });
         }
 
@@ -3359,16 +4113,29 @@ async function saveForm() {
                 document.getElementById('suitabilityForm').reset();
                 
                 // Clear tables
-                ['assetsTableBody', 'liabilitiesTableBody', 'pensionTableBody', 'experienceTableBody'].forEach(tableId => {
+                ['assetsTableBody', 'liabilitiesTableBody', 'pensionTableBody', 'experienceTableBody', 'securedIncomeTableBody', 'unsecuredIncomeTableBody'].forEach(tableId => {
                     const tbody = document.getElementById(tableId);
-                    tbody.innerHTML = '';
-                    
-                    // Add one empty row
-                    if (tableId === 'assetsTableBody') addAssetRow();
-                    else if (tableId === 'liabilitiesTableBody') addLiabilityRow();
-                    else if (tableId === 'pensionTableBody') addPensionRow();
-                    else if (tableId === 'experienceTableBody') addExperienceRow();
+                    if (tbody) {
+                        tbody.innerHTML = '';
+                        
+                        // Add one empty row
+                        if (tableId === 'assetsTableBody') addAssetRow();
+                        else if (tableId === 'liabilitiesTableBody') addLiabilityRow();
+                        else if (tableId === 'pensionTableBody') addPensionRow();
+                        else if (tableId === 'experienceTableBody') addExperienceRow();
+                        else if (tableId === 'securedIncomeTableBody') addSecuredIncomeRow();
+                        else if (tableId === 'unsecuredIncomeTableBody') addUnsecuredIncomeRow();
+                    }
                 });
+                
+                // Hide conditional sections
+                document.getElementById('spouseDetails').classList.remove('visible');
+                document.getElementById('divorceDetails').classList.remove('visible');
+                document.getElementById('dependentsSection').classList.remove('visible');
+                document.getElementById('willDetails').classList.remove('visible');
+                document.getElementById('percentageFeeSection').style.display = 'none';
+                document.getElementById('flatFeeSection').style.display = 'none';
+                document.getElementById('hybridFeeSection').style.display = 'none';
                 
                 // Generate new form ID
                 generateFormId();
@@ -3470,7 +4237,7 @@ async function saveForm() {
                     </style>
                 </head>
                 <body>
-                    <h1>IFA Suitability Assessment Form</h1>
+                    <h1>IFA Suitability Assessment Form - Enhanced Estate Planning</h1>
                     <p><strong>Form ID:</strong> ${formId}</p>
                     <p><strong>Export Date:</strong> ${new Date().toLocaleDateString()}</p>
                     <br>
@@ -3558,7 +4325,7 @@ async function saveForm() {
             return html;
         }
 
-        // Generate Suitability Report for Client
+        // Generate Suitability Report for Client - Enhanced
         async function generateSuitabilityReport() {
             // Validate form first
             const form = document.getElementById('suitabilityForm');
@@ -3619,6 +4386,10 @@ async function saveForm() {
             const dob = new Date(document.getElementById('dob').value).toLocaleDateString('en-GB');
             const address = `${document.getElementById('addressLine1').value}, ${document.getElementById('city').value}, ${document.getElementById('postcode').value}`;
             
+            // Estate planning details
+            const maritalStatus = document.getElementById('maritalStatus').value;
+            const spouseName = document.getElementById('spouseName').value;
+            
             // Objectives and risk
             const primaryObjective = document.getElementById('primaryObjective').value;
             const timeHorizon = document.getElementById('timeHorizon').value;
@@ -3640,12 +4411,27 @@ async function saveForm() {
             const incomeStrategy = document.getElementById('incomeStrategyDetail').value;
             const investmentStrategy = document.getElementById('investmentStrategyDetail').value;
             
-            // Costs
-            const initialCharge = document.getElementById('initialAdviserCharge').value || '0';
-            const ongoingCharge = document.getElementById('ongoingAdviserCharge').value || '0';
+            // Costs based on fee structure
+            const feeStructure = document.querySelector('input[name="feeStructure"]:checked')?.value || 'Not specified';
+            let costSummary = '';
+            
+            if (feeStructure === 'Flat Fee') {
+                const initialFlat = document.getElementById('initialFlatFee').value || '0';
+                const ongoingFlat = document.getElementById('ongoingFlatFee').value || '0';
+                costSummary = `Initial Fee: £${parseInt(initialFlat).toLocaleString()}, Ongoing Fee: £${parseInt(ongoingFlat).toLocaleString()} p.a.`;
+            } else if (feeStructure === 'Percentage') {
+                const initialPercent = document.getElementById('initialAdviserChargePercent').value || '0';
+                const ongoingPercent = document.getElementById('ongoingAdviserCharge').value || '0';
+                costSummary = `Initial Fee: ${initialPercent}%, Ongoing Fee: ${ongoingPercent}% p.a.`;
+            } else if (feeStructure === 'Hybrid') {
+                const hybridFlat = document.getElementById('hybridInitialFlat').value || '0';
+                const hybridPercent = document.getElementById('hybridOngoingPercent').value || '0';
+                costSummary = `Initial Fee: £${parseInt(hybridFlat).toLocaleString()}, Ongoing Fee: ${hybridPercent}% p.a.`;
+            }
+            
             const totalOngoingCharges = document.getElementById('totalOngoingCharges').value;
             
-            // Generate report HTML
+            // Generate enhanced report HTML
             return `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -3805,6 +4591,13 @@ async function saveForm() {
                             height: 40px;
                         }
                         
+                        .estate-info {
+                            background-color: #f8f9fa;
+                            padding: 15px;
+                            border-radius: 5px;
+                            margin: 20px 0;
+                        }
+                        
                         @media print {
                             body {
                                 margin: 0;
@@ -3819,8 +4612,9 @@ async function saveForm() {
                 </head>
                 <body>
                     <div class="header">
-                        <h1>Suitability Report</h1>
+                        <h1>Comprehensive Suitability Report</h1>
                         <div class="subtitle">
+                            Estate Planning & Financial Advisory Services<br>
                             Prepared for ${clientName}<br>
                             Date: ${currentDate}<br>
                             Reference: ${formId}
@@ -3840,6 +4634,10 @@ async function saveForm() {
                                 <span class="info-label">Address:</span> ${address}
                             </div>
                             <div class="info-item">
+                                <span class="info-label">Marital Status:</span> ${maritalStatus}
+                            </div>
+                            ${spouseName ? `<div class="info-item"><span class="info-label">Spouse/Partner:</span> ${spouseName}</div>` : ''}
+                            <div class="info-item">
                                 <span class="info-label">Report Date:</span> ${currentDate}
                             </div>
                         </div>
@@ -3847,7 +4645,7 @@ async function saveForm() {
 
                     <div class="section">
                         <h2>Executive Summary</h2>
-                        <p>Following our recent meeting and comprehensive financial assessment, I am pleased to present this suitability report outlining my recommendations for your financial planning needs.</p>
+                        <p>Following our comprehensive financial and estate planning assessment, I am pleased to present this enhanced suitability report outlining my recommendations for your financial planning and estate planning needs.</p>
                         
                         <div class="recommendation-box">
                             <h3>Primary Objective</h3>
@@ -3856,6 +4654,17 @@ async function saveForm() {
                             ${incomeRequirement !== 'Not specified' ? `<p><strong>Income Requirement:</strong> £${parseInt(incomeRequirement).toLocaleString()} per annum</p>` : ''}
                         </div>
                     </div>
+
+                    ${maritalStatus !== '' ? `
+                    <div class="section">
+                        <h2>Estate Planning Considerations</h2>
+                        <div class="estate-info">
+                            <p><strong>Current Situation:</strong> As a ${maritalStatus.toLowerCase()} individual, specific estate planning considerations apply to your circumstances.</p>
+                            ${spouseName ? `<p><strong>Spouse/Partner:</strong> ${spouseName} - Joint planning opportunities should be considered.</p>` : ''}
+                            <p><strong>Recommendations:</strong> We have assessed your current estate planning arrangements and identified areas for optimization as detailed in our comprehensive analysis.</p>
+                        </div>
+                    </div>
+                    ` : ''}
 
                     <div class="section">
                         <h2>Risk Profile Assessment</h2>
@@ -3884,21 +4693,21 @@ async function saveForm() {
                     </div>
 
                     <div class="section">
-                        <h2>Costs and Charges</h2>
-                        <p>Full transparency of costs is important to help you understand the value you receive. Below is a breakdown of all charges associated with our recommendations:</p>
+                        <h2>Fee Structure & Costs</h2>
+                        <p>We have implemented a ${feeStructure.toLowerCase()} approach to ensure transparency and value for money:</p>
                         
                         <table class="cost-table">
                             <tr>
-                                <th>Charge Type</th>
-                                <th>Amount</th>
+                                <th>Fee Structure</th>
+                                <th>Details</th>
                             </tr>
                             <tr>
-                                <td>Initial Adviser Charge</td>
-                                <td>£${parseInt(initialCharge || 0).toLocaleString()}</td>
+                                <td>Fee Approach</td>
+                                <td>${feeStructure}</td>
                             </tr>
                             <tr>
-                                <td>Ongoing Adviser Charge</td>
-                                <td>${ongoingCharge}% per annum</td>
+                                <td>Fee Summary</td>
+                                <td>${costSummary || 'Please refer to separate fee disclosure'}</td>
                             </tr>
                             <tr>
                                 <td>Total Ongoing Charges (including platform and fund charges)</td>
@@ -3918,21 +4727,24 @@ async function saveForm() {
                                 <li>Inflation will reduce the real value of money over time</li>
                                 <li>Tax treatment depends on individual circumstances and may change in the future</li>
                                 <li>Some investments may be difficult to sell quickly</li>
+                                <li>Estate planning arrangements should be reviewed regularly, especially following major life events</li>
                             </ul>
                         </div>
 
                         <h3>Next Steps</h3>
                         <ol>
                             <li>Review this report carefully and ensure you understand all recommendations</li>
-                            <li>Contact me if you have any questions or require clarification</li>
+                            <li>Contact me if you have any questions or require clarification on any aspect</li>
                             <li>Confirm your agreement to proceed with the recommendations</li>
                             <li>We will then implement the agreed strategy on your behalf</li>
+                            <li>Schedule regular reviews to ensure the strategy remains appropriate</li>
                         </ol>
                     </div>
 
                     <div class="section">
                         <h2>Declaration</h2>
-                        <p>This report has been prepared specifically for ${clientName} based on the information provided and discussions held. The recommendations are suitable for your stated objectives, risk profile, and financial circumstances as at ${currentDate}.</p>
+                        <p>This comprehensive report has been prepared specifically for ${clientName} based on the information provided and discussions held. The recommendations are suitable for your stated objectives, risk profile, and financial circumstances as at ${currentDate}.</p>
+                        <p>This report takes into account your estate planning requirements and family circumstances to provide holistic financial planning advice.</p>
                         
                         <div class="signature-section">
                             <div class="signature-box">
@@ -3949,7 +4761,8 @@ async function saveForm() {
                     <div class="footer">
                         <p>This suitability report has been prepared in accordance with FCA rules and regulations.<br>
                         Your home may be repossessed if you do not keep up repayments on your mortgage.<br>
-                        The Financial Conduct Authority does not regulate some forms of buy to let mortgages.</p>
+                        The Financial Conduct Authority does not regulate some forms of buy to let mortgages.<br>
+                        Estate planning advice does not constitute legal advice - please consult a qualified solicitor for legal matters.</p>
                     </div>
 
                     <div class="no-print" style="text-align: center; margin-top: 30px;">
