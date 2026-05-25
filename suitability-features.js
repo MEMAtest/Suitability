@@ -1373,7 +1373,148 @@ Rules:
   }
 
   // =========================================================================
-  // 9. AUDIT TRAIL / VERSION HISTORY
+  // 9. PLAIN-ENGLISH CLIENT LETTER (AI)
+  // =========================================================================
+  const CLIENT_LETTER_PROMPT = `You are an experienced IFA writing a warm, plain-English letter to a UK client explaining the financial advice you have just given them. The client may have limited financial knowledge.
+
+Rules:
+- Use UK English. Address the client by first name. Sign off with the adviser's name.
+- Avoid jargon. Where a technical term is unavoidable, explain it in brackets.
+- Reading age target: roughly 13-14 (Plain English Campaign style).
+- Length: 350-500 words. Structure with short paragraphs and a couple of bullet lists if helpful.
+- Tone: warm, confident, never patronising. Acknowledge any vulnerabilities sensitively.
+- Cover: a thank-you for the meeting, what you've understood about their goals, what you're recommending and why, what they need to do next, and a clear invitation to ask questions.
+- Output as a single piece of letter text — NO markdown, NO subject line, NO headings. Just the letter body itself, starting with "Dear FirstName," and ending with the adviser's name.`;
+
+  async function callClaudeText(prompt, system) {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error('No API key configured. Add one in Settings.');
+    const model = getModel();
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model, max_tokens: 2048,
+        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`Claude API error (${response.status}): ${await response.text()}`);
+    }
+    const data = await response.json();
+    return data.content?.[0]?.text || '';
+  }
+
+  async function openClientLetter() {
+    if (!getApiKey()) { toast('Add an Anthropic API key in Settings first', 'warning'); openSettings(); return; }
+
+    const fd = typeof collectAllFormData === 'function' ? collectAllFormData() : {};
+    const ctx = {
+      clientFirstName: fd.firstName,
+      clientLastName: fd.lastName,
+      adviserName: fd.adviserName,
+      primaryObjective: fd.primaryObjective,
+      secondaryObjectives: fd.secondaryObjectives,
+      timeHorizon: fd.timeHorizon,
+      riskCategory: fd.riskCategory,
+      vulnerabilities: fd.vulnerabilities,
+      adviceType: fd.adviceType,
+      recommendationSummary: fd.recommendationSummary,
+      incomeStrategy: fd.incomeStrategyDetail,
+      investmentStrategy: fd.investmentStrategyDetail,
+      advantages: fd.recommendationAdvantages,
+      disadvantages: fd.recommendationDisadvantages,
+      nextReviewDate: fd.nextReviewDate,
+    };
+
+    const placeholder = document.createElement('div');
+    placeholder.innerHTML = '<div style="text-align: center; padding: 30px; color: #666;"><div style="font-size: 28px; margin-bottom: 8px;">⏳</div>Drafting client letter…</div>';
+    const { overlay } = showModal({
+      title: '📨 Plain-English Client Letter',
+      body: placeholder,
+      width: 720,
+      actions: [{ label: 'Cancel' }],
+    });
+
+    try {
+      const letter = await callClaudeText(
+        `Draft a plain-English client letter for this case:\n\n${JSON.stringify(ctx, null, 2)}`,
+        CLIENT_LETTER_PROMPT,
+      );
+      const b = getBranding();
+      const letterPanel = document.createElement('div');
+      letterPanel.innerHTML = `
+        <textarea id="sf-letter-text" rows="20" style="
+          width: 100%; padding: 16px; border: 1px solid #E5E5E5; border-radius: 6px;
+          font-family: Georgia, serif; font-size: 14px; line-height: 1.6; resize: vertical;
+        ">${escapeHtml(letter)}</textarea>
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">Edit freely. Then copy or open as a printable letter on firm letterhead.</div>
+      `;
+      const oldBody = qs('.sf-modal-body', overlay);
+      oldBody.innerHTML = '';
+      oldBody.appendChild(letterPanel);
+
+      const actionsEl = qs('.sf-modal-actions', overlay);
+      actionsEl.innerHTML = '';
+      const mkBtn = (label, primary, fn) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.style.cssText = `
+          padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;
+          font-size: 14px; font-weight: 500;
+          background: ${primary ? '#4472C4' : '#E5E5E5'};
+          color: ${primary ? 'white' : '#333'};
+        `;
+        btn.onclick = fn;
+        actionsEl.appendChild(btn);
+      };
+      mkBtn('Close', false, () => overlay.remove());
+      mkBtn('📋 Copy', false, () => {
+        navigator.clipboard.writeText(qs('#sf-letter-text', overlay).value)
+          .then(() => toast('Letter copied to clipboard', 'success'));
+      });
+      mkBtn('🖨️ Open on Letterhead', true, () => openLetterhead(qs('#sf-letter-text', overlay).value, b, ctx));
+    } catch (e) {
+      console.error(e);
+      qs('.sf-modal-body', overlay).innerHTML = `<div style="background: #f8d7da; padding: 14px; border-radius: 6px; color: #721c24;"><strong>Error:</strong> ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function openLetterhead(text, b, ctx) {
+    const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const clientAddress = [getFieldValue('addressLine1'), getFieldValue('addressLine2'), getFieldValue('city'), getFieldValue('postcode')].filter(Boolean).join('<br>');
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Client Letter</title>
+<style>
+  @page { margin: 22mm 18mm; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: #222; line-height: 1.65; max-width: 720px; margin: 0 auto; padding: 20px; }
+  ${buildBrandedReportHead(b).replace(/<\/?style>/g, '')}
+  .sf-letter-meta { margin: 30px 0 20px 0; font-size: 14px; }
+  .sf-letter-meta .sf-date { text-align: right; }
+  .sf-letter-body { white-space: pre-wrap; font-size: 14.5px; }
+</style></head><body>
+${buildPdfActionBar()}
+${buildBrandedHeader(b)}
+<div class="sf-letter-meta">
+  <div class="sf-date">${today}</div>
+  <div style="margin-top: 30px;">${clientAddress || ''}</div>
+</div>
+<div class="sf-letter-body">${escapeHtml(text)}</div>
+${buildBrandedFooter(b)}
+</body></html>`;
+    const w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+  }
+
+  // =========================================================================
+  // 10. AUDIT TRAIL / VERSION HISTORY
   // =========================================================================
   function snapshotForm() {
     const fd = typeof collectAllFormData === 'function' ? collectAllFormData() : {};
@@ -1640,6 +1781,7 @@ ${buildBrandedFooter(b)}
       <div class="sf-feature-bar-body">
         <button class="sf-feature-btn" onclick="window.SF.showTemplateLibrary()">📂 Use Template</button>
         <button class="sf-feature-btn sf-primary" onclick="window.SF.openAIDraftModal()">🤖 AI Draft Report</button>
+        <button class="sf-feature-btn" onclick="window.SF.openClientLetter()">📨 Client Letter</button>
         <button class="sf-feature-btn" onclick="window.SF.openDocumentUpload()">📄 Upload Documents</button>
         <button class="sf-feature-btn" onclick="window.SF.createClientIntake()">🔗 Send Client Intake Link</button>
         <button class="sf-feature-btn" onclick="window.SF.loadClientIntake()">📥 Load Client Intake</button>
@@ -1730,5 +1872,6 @@ ${buildBrandedFooter(b)}
     openSettings,
     openDocumentUpload,
     openAuditHistory,
+    openClientLetter,
   };
 })();
