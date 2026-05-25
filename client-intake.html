@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Intake Form</title>
+  <style>
+    :root {
+      --primary-blue: #003366;
+      --secondary-blue: #4472C4;
+      --light-blue: #E7F1FF;
+      --gray-dark: #333333;
+      --gray-medium: #666666;
+      --gray-light: #E5E5E5;
+      --success-green: #28A745;
+      --warning-orange: #FFC107;
+      --danger-red: #DC3545;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-size: 14px; line-height: 1.6; color: var(--gray-dark);
+      background: #F5F7FA;
+    }
+    header {
+      background: var(--primary-blue); color: white; padding: 24px 0;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    header h1 { font-size: 24px; font-weight: 600; }
+    header p { margin-top: 6px; font-size: 14px; opacity: 0.85; }
+    .intro {
+      background: white; padding: 20px; border-radius: 8px;
+      margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--secondary-blue);
+    }
+    .section {
+      background: white; padding: 24px; margin-bottom: 16px;
+      border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .section h2 {
+      color: var(--primary-blue); font-size: 18px; margin-bottom: 16px;
+      padding-bottom: 10px; border-bottom: 2px solid var(--light-blue);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; margin-bottom: 6px; font-weight: 600;
+      color: var(--gray-dark); font-size: 13px;
+    }
+    .form-group label.required::after { content: ' *'; color: var(--danger-red); }
+    input[type="text"], input[type="number"], input[type="date"],
+    input[type="email"], input[type="tel"], select, textarea {
+      width: 100%; padding: 10px; border: 1px solid var(--gray-light);
+      border-radius: 4px; font-size: 14px; font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--secondary-blue);
+      box-shadow: 0 0 0 2px rgba(68, 114, 196, 0.1);
+    }
+    .form-row {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .checkbox-group, .radio-group {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .checkbox-item, .radio-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 8px; border-radius: 4px;
+    }
+    .checkbox-item:hover, .radio-item:hover { background: var(--light-blue); }
+    input[type="checkbox"], input[type="radio"] {
+      width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; margin-top: 2px;
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    .submit-bar {
+      position: sticky; bottom: 0; background: white;
+      padding: 16px; box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      display: flex; justify-content: space-between; align-items: center;
+      border-radius: 8px; margin-top: 20px;
+    }
+    .btn {
+      padding: 12px 24px; border: none; border-radius: 6px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary { background: var(--success-green); color: white; }
+    .btn-primary:hover { background: #218838; }
+    .btn-primary:disabled { background: #888; cursor: not-allowed; }
+    .status {
+      padding: 16px; border-radius: 8px; margin-bottom: 16px;
+      display: none;
+    }
+    .status.success { background: #d4edda; color: #155724; display: block; }
+    .status.error { background: #f8d7da; color: #721c24; display: block; }
+    .privacy {
+      background: #F0F8FF; padding: 16px; border-radius: 8px;
+      margin-top: 20px; font-size: 13px; color: #003366;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <h1>Client Intake Form</h1>
+      <p id="adviserGreeting">Loading…</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="loadingState" class="intro">Loading your intake form…</div>
+    <div id="errorState" class="intro" style="display:none; border-left-color: var(--danger-red); background: #fff5f5;">
+      <h3 style="color: var(--danger-red); margin-bottom: 8px;">⚠️ Link Invalid or Expired</h3>
+      <p>This intake link could not be loaded. Please contact your adviser for a new link.</p>
+    </div>
+    <div id="successState" class="intro" style="display:none; border-left-color: var(--success-green); background: #d4edda;">
+      <h3 style="color: var(--success-green); margin-bottom: 8px;">✓ Thank you</h3>
+      <p>Your information has been securely submitted to your adviser. They will be in touch shortly.</p>
+    </div>
+
+    <form id="intakeForm" style="display: none;">
+      <div class="intro">
+        <p><strong>Welcome.</strong> Your adviser has asked you to provide some information ahead of your meeting. This is a secure form — your data is encrypted in transit and only your adviser can access it.</p>
+        <p style="margin-top: 8px;">Estimated time: <strong>10 minutes</strong>. Fields marked with * are required.</p>
+      </div>
+
+      <div class="status" id="statusMessage"></div>
+
+      <div class="section">
+        <h2>1. About You</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="required" for="title">Title</label>
+            <select id="title" name="title" required>
+              <option value="">Select</option>
+              <option>Mr</option><option>Mrs</option><option>Miss</option>
+              <option>Ms</option><option>Dr</option><option>Prof</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="required" for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName" required>
+          </div>
+          <div class="form-group">
+            <label class="required" for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="required" for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="required" for="addressLine1">Address</label>
+          <input type="text" id="addressLine1" name="addressLine1" placeholder="House number and street" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">Town/City</label>
+            <input type="text" id="city" name="city">
+          </div>
+          <div class="form-group">
+            <label for="postcode">Postcode</label>
+            <input type="text" id="postcode" name="postcode" style="text-transform: uppercase;">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="required" for="employmentStatus">Employment Status</label>
+            <select id="employmentStatus" name="employmentStatus" required>
+              <option value="">Select</option>
+              <option>Employed</option><option>Self-Employed</option>
+              <option>Retired</option><option>Unemployed</option><option>Student</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="required" for="maritalStatus">Marital Status</label>
+            <select id="maritalStatus" name="maritalStatus" required>
+              <option value="">Select</option>
+              <option>Single</option><option>Married</option>
+              <option>Civil Partnership</option><option>Divorced</option>
+              <option>Widowed</option><option>Separated</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>2. Your Goals</h2>
+        <div class="form-group">
+          <label class="required" for="primaryObjective">In your own words, what are you hoping to achieve?</label>
+          <textarea id="primaryObjective" name="primaryObjective" rows="4" placeholder="e.g., Retire at 60 with £30,000/year income, ensure family is protected if anything happens to me, grow savings for a house deposit..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="secondaryObjectives">Any secondary goals?</label>
+          <textarea id="secondaryObjectives" name="secondaryObjectives" rows="2" placeholder="Other things on your mind…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="required" for="timeHorizon">When do you need to achieve this?</label>
+            <select id="timeHorizon" name="timeHorizon" required>
+              <option value="">Select</option>
+              <option value="Short">Within 3 years</option>
+              <option value="Medium">3–7 years</option>
+              <option value="Long">7+ years</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="incomeRequirement">If income-related, target annual income (£)</label>
+            <input type="number" id="incomeRequirement" name="incomeRequirement" min="0" placeholder="e.g., 30000">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>3. Investment Experience</h2>
+        <div class="form-group">
+          <label class="required" for="investmentKnowledge">How would you describe your investment knowledge?</label>
+          <select id="investmentKnowledge" name="investmentKnowledge" required>
+            <option value="">Select</option>
+            <option value="None">None — I'm new to investing</option>
+            <option value="Basic">Basic — I understand simple products like ISAs</option>
+            <option value="Intermediate">Intermediate — Good understanding of investments</option>
+            <option value="Advanced">Advanced — I'm a sophisticated investor</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>4. Anything we should know?</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 12px;">
+          The FCA asks us to check whether any circumstances might make you more vulnerable to financial harm so we can adapt how we work with you. Please tick anything that applies. There is no judgement here — this just helps us look after you properly.
+        </p>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="vuln_health" name="vulnerabilities" value="Health">
+            <label for="vuln_health">A physical or mental health condition that affects how I manage money or make decisions</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="vuln_life" name="vulnerabilities" value="Life Events">
+            <label for="vuln_life">A recent significant life event (bereavement, divorce, job loss, illness)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="vuln_resilience" name="vulnerabilities" value="Resilience">
+            <label for="vuln_resilience">Concerns about being able to cope with an unexpected financial setback</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="vuln_capability" name="vulnerabilities" value="Capability">
+            <label for="vuln_capability">I'd like extra help understanding the products and recommendations</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="vuln_none" name="vulnerabilities" value="None">
+            <label for="vuln_none">None of the above — no concerns</label>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+          <label for="vulnerabilityDetails">Anything else you'd like us to know (optional)</label>
+          <textarea id="vulnerabilityDetails" name="vulnerabilityDetails" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>5. Adjustments</h2>
+        <div class="form-group">
+          <label for="adaptationsMade">Would you like us to make any adjustments to how we work with you? (e.g., larger print, longer meetings, having a family member present)</label>
+          <textarea id="adaptationsMade" name="adaptationsMade" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="privacy">
+        <strong>Privacy:</strong> This information is sent securely to your adviser's compliance system (FCA-regulated). It will be used only for the purpose of providing you with suitable financial advice and will be retained in line with FCA record-keeping requirements (typically 6 years). You can request a copy or deletion at any time.
+      </div>
+
+      <div class="submit-bar">
+        <div style="font-size: 13px; color: #666;">Click submit when you're ready. You can return to this link to update your answers until your adviser processes it.</div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Submit to Adviser</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://maandodhonjolrmcxivo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hYW5kb2Rob25qb2xybWN4aXZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1NDg3NjIsImV4cCI6MjA2NDEyNDc2Mn0.Ku89ldqO_b1ptFBQFtQPhzmmnrg04LpcMeCw21sjlAE';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token');
+
+    const $ = (id) => document.getElementById(id);
+
+    function showError() {
+      $('loadingState').style.display = 'none';
+      $('errorState').style.display = 'block';
+    }
+    function showSuccess() {
+      $('intakeForm').style.display = 'none';
+      $('successState').style.display = 'block';
+    }
+
+    async function loadIntake() {
+      if (!token) { showError(); return; }
+      const { data, error } = await client
+        .from('ifa_forms')
+        .select('payload')
+        .eq('form_id', token)
+        .single();
+
+      if (error || !data || !data.payload) { showError(); return; }
+      const p = data.payload;
+      if (p.type !== 'intake_pending' && p.type !== 'intake_submitted') { showError(); return; }
+      if (p.expires_at && new Date(p.expires_at) < new Date()) { showError(); return; }
+
+      $('adviserGreeting').textContent = `Sent to you by ${p.adviser_name || 'your adviser'}`;
+      $('loadingState').style.display = 'none';
+      $('intakeForm').style.display = 'block';
+
+      // Pre-fill any existing data
+      if (p.formData) {
+        Object.keys(p.formData).forEach((k) => {
+          const els = document.getElementsByName(k);
+          if (!els.length) return;
+          const v = p.formData[k];
+          if (els[0].type === 'checkbox') {
+            const wanted = Array.isArray(v) ? v : [v];
+            Array.from(els).forEach((e) => { e.checked = wanted.includes(e.value); });
+          } else {
+            els[0].value = v;
+          }
+        });
+      }
+
+      if (p.type === 'intake_submitted') {
+        const status = $('statusMessage');
+        status.className = 'status success';
+        status.textContent = '✓ You have already submitted this form. You can update your answers and resubmit if needed.';
+      }
+    }
+
+    function collectFormData() {
+      const form = $('intakeForm');
+      const fd = new FormData(form);
+      const data = {};
+      for (const [k, v] of fd.entries()) {
+        if (data[k]) {
+          if (!Array.isArray(data[k])) data[k] = [data[k]];
+          data[k].push(v);
+        } else {
+          data[k] = v;
+        }
+      }
+      return data;
+    }
+
+    async function submitIntake(e) {
+      e.preventDefault();
+      const btn = $('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      const formData = collectFormData();
+
+      // Fetch current payload, merge
+      const { data: row } = await client
+        .from('ifa_forms').select('payload').eq('form_id', token).single();
+      const payload = row?.payload || {};
+      payload.type = 'intake_submitted';
+      payload.formData = formData;
+      payload.submitted_at = new Date().toISOString();
+
+      const { error } = await client
+        .from('ifa_forms')
+        .update({ payload })
+        .eq('form_id', token);
+
+      if (error) {
+        const status = $('statusMessage');
+        status.className = 'status error';
+        status.textContent = '⚠️ Could not submit: ' + error.message + '. Please try again or contact your adviser.';
+        btn.disabled = false;
+        btn.textContent = 'Submit to Adviser';
+        return;
+      }
+
+      showSuccess();
+    }
+
+    $('intakeForm').addEventListener('submit', submitIntake);
+    loadIntake();
+  </script>
+</body>
+</html>

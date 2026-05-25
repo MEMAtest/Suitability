@@ -127,6 +127,13 @@
             </div>
         </div>
 
+        <div class="section" id="reviewsSection">
+            <h2>📅 Upcoming Annual Reviews</h2>
+            <div id="reviewsBody">
+                <p style="color: var(--gray-medium); padding: 10px 0;">Loading reviews…</p>
+            </div>
+        </div>
+
         <div class="section">
             <h2>User Submissions</h2>
             <div id="loadingSubmissions" class="loading">Loading submissions...</div>
@@ -269,6 +276,69 @@ function renderCharts(forms) {
     renderAdviceTypeChart(forms);
     renderRiskProfileChart(forms);
     renderAssetTypeChart(forms); // Replaced the old chart function
+    renderUpcomingReviews(forms);
+}
+
+function renderUpcomingReviews(forms) {
+    const container = document.getElementById('reviewsBody');
+    if (!container) return;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    const reviews = forms
+        .map((form) => {
+            const fd = form.payload?.formData;
+            if (!fd || !fd.nextReviewDate) return null;
+            const due = new Date(fd.nextReviewDate);
+            if (isNaN(due)) return null;
+            const days = Math.floor((due - today) / (1000 * 60 * 60 * 24));
+            return {
+                clientName: `${fd.firstName || ''} ${fd.lastName || ''}`.trim() || '(unnamed)',
+                formId: form.form_id,
+                dueDate: due,
+                daysUntil: days,
+                adviser: fd.adviserName || '—',
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.daysUntil - b.daysUntil);
+
+    if (reviews.length === 0) {
+        container.innerHTML = '<p style="color: var(--gray-medium); padding: 10px 0;">No upcoming reviews scheduled. Set a "Next Review Date" on any form to see it here.</p>';
+        return;
+    }
+
+    const colorFor = (days) => {
+        if (days < 0) return { bg: '#f8d7da', border: '#DC3545', text: '#721c24', label: 'OVERDUE' };
+        if (days <= 7) return { bg: '#f8d7da', border: '#DC3545', text: '#721c24', label: 'THIS WEEK' };
+        if (days <= 30) return { bg: '#fff3cd', border: '#FFC107', text: '#856404', label: 'DUE SOON' };
+        if (days <= 60) return { bg: '#e7f1ff', border: '#4472C4', text: '#003366', label: 'UPCOMING' };
+        return { bg: '#d4edda', border: '#28A745', text: '#155724', label: 'SCHEDULED' };
+    };
+
+    container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+            ${reviews.map((r) => {
+                const c = colorFor(r.daysUntil);
+                const dateStr = r.dueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                const subtitle = r.daysUntil < 0
+                    ? `${Math.abs(r.daysUntil)} day${Math.abs(r.daysUntil) === 1 ? '' : 's'} overdue`
+                    : `in ${r.daysUntil} day${r.daysUntil === 1 ? '' : 's'}`;
+                return `
+                    <a href="/view-form.html?id=${r.formId}" target="_blank" style="
+                        display: block; text-decoration: none; color: inherit;
+                        background: ${c.bg}; border-left: 4px solid ${c.border};
+                        padding: 14px; border-radius: 6px;
+                        transition: transform 0.15s;
+                    " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        <div style="font-size: 10px; font-weight: 700; color: ${c.text}; letter-spacing: 0.5px; margin-bottom: 4px;">${c.label}</div>
+                        <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 2px;">${r.clientName}</div>
+                        <div style="font-size: 13px; color: ${c.text};"><strong>${dateStr}</strong> · ${subtitle}</div>
+                        <div style="font-size: 11px; color: var(--gray-medium); margin-top: 4px;">Adviser: ${r.adviser}</div>
+                    </a>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 // Chart 1: Advice Type Distribution (No changes needed)
