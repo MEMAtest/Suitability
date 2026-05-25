@@ -886,6 +886,14 @@
                     <div class="dropdown-item" onclick="generateSuitabilityReport()">📄 Generate Client Report</div>
                     <div class="dropdown-item" onclick="printForm()">🖨️ Print Form</div>
                     <div class="dropdown-item" onclick="clearForm()">🗑️ Clear Form</div>
+                    <div class="dropdown-item" style="border-top: 2px solid #4472C4; font-weight: 600; color: #003366;" onclick="window.SF && window.SF.showTemplateLibrary()">📂 Use Template</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.openAIDraftModal()">🤖 AI Draft Report</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.openDocumentUpload()">📄 Upload Documents (AI Extract)</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.createClientIntake()">🔗 Send Client Intake Link</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.loadClientIntake()">📥 Load Client Intake</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.runPresubmissionCheck()">✓ Pre-Submission Check</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.openAuditHistory()">📜 Audit Trail</div>
+                    <div class="dropdown-item" onclick="window.SF && window.SF.openSettings()">⚙️ Settings &amp; Branding</div>
                 </div>
             </div>
             <button class="btn btn-primary" onclick="generateSuitabilityReport()">📄 Generate Report</button>
