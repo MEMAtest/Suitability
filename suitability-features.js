@@ -37,13 +37,30 @@
     const first = els[0];
     if (first.type === 'radio') {
       els.forEach((e) => { e.checked = e.value === value; });
+      // Dispatch change on the actually-checked element so per-element onchange handlers fire,
+      // plus on the first one so form-level listeners reliably see the bubbling event.
+      const checked = els.find((e) => e.checked) || first;
+      checked.dispatchEvent(new Event('change', { bubbles: true }));
+      if (checked !== first) first.dispatchEvent(new Event('change', { bubbles: true }));
     } else if (first.type === 'checkbox') {
-      const wanted = Array.isArray(value) ? value : [value];
-      els.forEach((e) => { e.checked = wanted.includes(e.value); });
+      const wanted = Array.isArray(value) ? value : (value === undefined || value === null || value === '' ? [] : [value]);
+      els.forEach((e) => {
+        const shouldBeChecked = wanted.includes(e.value);
+        if (e.checked !== shouldBeChecked) {
+          e.checked = shouldBeChecked;
+          e.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
     } else {
-      first.value = value || '';
+      // Don't silently coerce arrays/objects into "a,b" comma-strings — that corrupts data.
+      // If we get an array for a single-value field, use the first element (or empty).
+      let v = value;
+      if (Array.isArray(v)) v = v[0] || '';
+      if (v && typeof v === 'object') v = '';
+      first.value = v == null ? '' : String(v);
+      first.dispatchEvent(new Event('input', { bubbles: true }));
+      first.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    first.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   function getSupabase() {
@@ -88,7 +105,7 @@
     `;
     modal.innerHTML = `
       <div style="padding: 20px 24px; border-bottom: 1px solid #E5E5E5; display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0; color: #003366; font-size: 20px;">${title}</h2>
+        <h2 style="margin: 0; color: #003366; font-size: 20px;">${escapeHtml(title)}</h2>
         <button class="sf-close" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #666; line-height: 1;">&times;</button>
       </div>
       <div class="sf-modal-body" style="padding: 24px; overflow-y: auto; flex: 1;"></div>
@@ -140,8 +157,15 @@
     { id: 'risk_category',       label: 'Attitude to risk assessed (1-7)',   weight: 2, check: () => !!getFieldValue('riskCategory') },
     { id: 'capacity_for_loss',   label: 'Capacity for loss documented',      weight: 2, check: () => !!getFieldValue('emergencyFund') && !!getFieldValue('maxAcceptableLoss') },
     { id: 'risk_reconciled',     label: 'ATR/CFL reconciliation (if mismatch)', weight: 1, check: () => {
-        const reconciliation = getFieldValue('riskReconciliation');
-        return reconciliation.trim().length > 0 || true;
+        // Only required when there's a documented mismatch — if maxAcceptableLoss is set
+        // and looks at odds with the risk category. Otherwise pass.
+        const reconciliation = (getFieldValue('riskReconciliation') || '').trim();
+        const riskCat = parseInt(getFieldValue('riskCategory') || 0, 10);
+        const maxLoss = parseFloat(getFieldValue('maxAcceptableLoss') || 0);
+        if (!riskCat || !maxLoss) return true; // not enough data to detect mismatch
+        const expectedLoss = riskCat * 10; // rough heuristic: cat 5 → ~50% loss tolerance
+        const mismatch = Math.abs(maxLoss - expectedLoss) > 20;
+        return mismatch ? reconciliation.length > 0 : true;
       } },
     { id: 'knowledge_experience',label: 'Knowledge & experience assessed',   weight: 1, check: () => !!getFieldValue('investmentKnowledge') },
     { id: 'vulnerability',       label: 'Vulnerability assessment completed',weight: 2, check: () => {
@@ -253,8 +277,8 @@
       description: 'Defined benefit transfer advice — focused pension assessment with mandatory risk warnings.',
       apply: () => {
         setFieldValue('adviceType', 'Pension');
-        ['area_pension', 'area_retirement', 'area_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
-        ['risk_capital', 'risk_inflation', 'risk_liquidity', 'risk_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
+        ['area_pension', 'area_retirement', 'area_tax'].forEach(checkById);
+        ['risk_capital', 'risk_inflation', 'risk_liquidity', 'risk_tax'].forEach(checkById);
         focusSection('section3');
       },
     },
@@ -265,9 +289,9 @@
       description: 'Income drawdown setup with sustainable withdrawal analysis.',
       apply: () => {
         setFieldValue('adviceType', 'Pension');
-        ['area_pension', 'area_retirement', 'area_investment'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
-        ['opt_drawdown', 'opt_annuity', 'opt_hybrid'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
-        ['risk_capital', 'risk_inflation', 'risk_concentration'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
+        ['area_pension', 'area_retirement', 'area_investment'].forEach(checkById);
+        ['opt_drawdown', 'opt_annuity', 'opt_hybrid'].forEach(checkById);
+        ['risk_capital', 'risk_inflation', 'risk_concentration'].forEach(checkById);
         focusSection('section3');
       },
     },
@@ -278,8 +302,8 @@
       description: 'Stocks & shares ISA or general investment account recommendation.',
       apply: () => {
         setFieldValue('adviceType', 'Investment');
-        ['area_investment', 'area_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
-        ['risk_capital', 'risk_inflation', 'risk_concentration', 'risk_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
+        ['area_investment', 'area_tax'].forEach(checkById);
+        ['risk_capital', 'risk_inflation', 'risk_concentration', 'risk_tax'].forEach(checkById);
         focusSection('section4');
       },
     },
@@ -290,7 +314,7 @@
       description: 'Life cover, critical illness, income protection assessment.',
       apply: () => {
         setFieldValue('adviceType', 'Protection');
-        const el = $('area_protection'); if (el) el.checked = true;
+        checkById('area_protection');
         focusSection('section1');
       },
     },
@@ -301,10 +325,15 @@
       description: 'Recurring suitability review — sets next review date to 1 year from today.',
       apply: () => {
         setFieldValue('adviceType', 'Full');
-        ['area_investment', 'area_pension', 'area_retirement', 'area_protection', 'area_estate', 'area_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
+        ['area_investment', 'area_pension', 'area_retirement', 'area_protection', 'area_estate', 'area_tax'].forEach(checkById);
         const next = new Date(); next.setFullYear(next.getFullYear() + 1);
+        // Use a local-date string to avoid UTC drift turning 31 Dec into 30 Dec.
+        const localIso = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
         const reviewField = $('nextReviewDate');
-        if (reviewField) reviewField.value = next.toISOString().slice(0, 10);
+        if (reviewField) {
+          reviewField.value = localIso;
+          reviewField.dispatchEvent(new Event('change', { bubbles: true }));
+        }
         focusSection('section1');
       },
     },
@@ -315,7 +344,7 @@
       description: 'Comprehensive holistic financial plan — all advice areas enabled.',
       apply: () => {
         setFieldValue('adviceType', 'Full');
-        ['area_investment', 'area_pension', 'area_retirement', 'area_protection', 'area_estate', 'area_tax'].forEach((id) => { const el = $(id); if (el) el.checked = true; });
+        ['area_investment', 'area_pension', 'area_retirement', 'area_protection', 'area_estate', 'area_tax'].forEach(checkById);
         focusSection('section1');
       },
     },
@@ -325,6 +354,15 @@
     const section = $(id);
     if (!section) return;
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Helper for templates: tick a checkbox by id and fire a change event so
+  // downstream listeners (compliance recompute, validation summary, etc.) see it.
+  function checkById(id) {
+    const el = $(id);
+    if (!el || el.checked) return;
+    el.checked = true;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   function showTemplateLibrary() {
@@ -367,10 +405,18 @@
   const AI_MODEL_STORAGE = 'sf_anthropic_model';
   const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
-  function getApiKey() { return localStorage.getItem(AI_KEY_STORAGE) || ''; }
-  function saveApiKey(key) { localStorage.setItem(AI_KEY_STORAGE, key); }
-  function getModel() { return localStorage.getItem(AI_MODEL_STORAGE) || DEFAULT_MODEL; }
-  function saveModel(m) { localStorage.setItem(AI_MODEL_STORAGE, m); }
+  function getApiKey() {
+    try { return localStorage.getItem(AI_KEY_STORAGE) || ''; } catch (e) { return ''; }
+  }
+  function saveApiKey(key) {
+    try { localStorage.setItem(AI_KEY_STORAGE, key); } catch (e) { console.warn(e); }
+  }
+  function getModel() {
+    try { return localStorage.getItem(AI_MODEL_STORAGE) || DEFAULT_MODEL; } catch (e) { return DEFAULT_MODEL; }
+  }
+  function saveModel(m) {
+    try { localStorage.setItem(AI_MODEL_STORAGE, m); } catch (e) { console.warn(e); }
+  }
 
   function buildAIContext() {
     const fd = typeof collectAllFormData === 'function' ? collectAllFormData() : {};
@@ -435,12 +481,11 @@ Rules:
 - Match tone to the client's experience level when described.
 - Output JSON ONLY, no markdown fences, no preamble.`;
 
-  async function callClaudeAPI(context) {
+  // Shared helper that surfaces useful error info from Anthropic responses
+  // (rate limits, overload, unknown model) and tolerates model preambles before JSON.
+  async function postToAnthropic(body) {
     const apiKey = getApiKey();
-    if (!apiKey) throw new Error('No API key configured');
-    const model = getModel();
-
-    const userPrompt = `Draft the suitability report sections for the following client case:\n\n${JSON.stringify(context, null, 2)}`;
+    if (!apiKey) throw new Error('No API key configured. Add one in Settings.');
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -450,26 +495,83 @@ Rules:
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
-      body: JSON.stringify({
-        model,
-        max_tokens: 4096,
-        system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: userPrompt }],
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Claude API error (${response.status}): ${errText}`);
+      let errMessage = '';
+      let errType = '';
+      try {
+        const j = await response.json();
+        errType = j.error?.type || '';
+        errMessage = j.error?.message || JSON.stringify(j).slice(0, 200);
+      } catch {
+        errMessage = (await response.text()).slice(0, 200);
+      }
+      const retryAfter = response.headers.get('retry-after');
+      let friendly = `Claude API error (${response.status})`;
+      if (response.status === 429 || errType === 'rate_limit_error') {
+        friendly = retryAfter
+          ? `Rate limited — try again in ${retryAfter}s`
+          : 'Rate limited — please wait a moment and try again';
+      } else if (response.status === 529 || errType === 'overloaded_error') {
+        friendly = 'Anthropic is overloaded — please retry in a few seconds';
+      } else if (response.status === 401) {
+        friendly = 'Invalid API key — check Settings';
+      } else if (response.status === 404 || errType === 'not_found_error') {
+        friendly = `Model not found (${body.model}). Pick a different model in Settings.`;
+      } else if (response.status === 400 && errMessage) {
+        friendly = `Request rejected: ${errMessage}`;
+      } else if (errMessage) {
+        friendly += ': ' + errMessage;
+      }
+      const err = new Error(friendly);
+      err.retryAfter = retryAfter;
+      throw err;
     }
+
     const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    try {
-      const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-      return JSON.parse(cleaned);
-    } catch (e) {
-      throw new Error('Could not parse AI response as JSON. Raw: ' + text.slice(0, 200));
+    // content can be an array of blocks; concatenate the text ones (and skip tool_use, etc.).
+    const text = (data.content || [])
+      .filter((b) => b && b.type === 'text' && typeof b.text === 'string')
+      .map((b) => b.text)
+      .join('\n');
+    return text;
+  }
+
+  function parseAIJson(text) {
+    // Strip ```json``` fences anywhere they appear, then try to extract the first JSON object.
+    let cleaned = text.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+    // If the model wrote prose before the JSON, find the first '{' that is followed by valid JSON.
+    if (!cleaned.startsWith('{')) {
+      const idx = cleaned.indexOf('{');
+      if (idx >= 0) cleaned = cleaned.slice(idx);
     }
+    // Trim any trailing prose by walking braces.
+    if (cleaned.startsWith('{')) {
+      let depth = 0, end = -1;
+      for (let i = 0; i < cleaned.length; i++) {
+        if (cleaned[i] === '{') depth++;
+        else if (cleaned[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+      }
+      if (end > 0) cleaned = cleaned.slice(0, end);
+    }
+    try { return JSON.parse(cleaned); }
+    catch (e) {
+      throw new Error('Could not parse AI response as JSON. The model may have wrapped the result in extra prose. First 300 chars: ' + text.slice(0, 300));
+    }
+  }
+
+  async function callClaudeAPI(context) {
+    const model = getModel();
+    const userPrompt = `Draft the suitability report sections for the following client case:\n\n${JSON.stringify(context, null, 2)}`;
+    const text = await postToAnthropic({
+      model,
+      max_tokens: 4096,
+      system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    return parseAIJson(text);
   }
 
   function openAIDraftModal() {
@@ -525,7 +627,7 @@ Rules:
           return true;
         } catch (e) {
           console.error(e);
-          status.innerHTML = `<div style="background: #f8d7da; padding: 12px; border-radius: 6px; color: #721c24; font-size: 13px;"><strong>Error:</strong> ${e.message}</div>`;
+          status.innerHTML = `<div style="background: #f8d7da; padding: 12px; border-radius: 6px; color: #721c24; font-size: 13px;"><strong>Error:</strong> ${escapeHtml(e.message)}</div>`;
           return false;
         }
       },
@@ -556,10 +658,10 @@ Rules:
       ${fields.map((f) => `
         <div style="margin-bottom: 16px;">
           <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; margin-bottom: 6px;">
-            <input type="checkbox" class="sf-draft-include" data-key="${f.key}" data-target="${f.target}" checked>
-            ${f.label}
+            <input type="checkbox" class="sf-draft-include" data-key="${escapeHtml(f.key)}" data-target="${escapeHtml(f.target)}" checked>
+            ${escapeHtml(f.label)}
           </label>
-          <textarea class="sf-draft-text" data-key="${f.key}" rows="5" style="width: 100%; padding: 10px; border: 1px solid #E5E5E5; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical;">${draft[f.key] || ''}</textarea>
+          <textarea class="sf-draft-text" data-key="${escapeHtml(f.key)}" rows="5" style="width: 100%; padding: 10px; border: 1px solid #E5E5E5; border-radius: 4px; font-family: inherit; font-size: 13px; resize: vertical;">${escapeHtml(draft[f.key] || '')}</textarea>
         </div>
       `).join('')}
     `;
@@ -619,7 +721,11 @@ Rules:
       formData: {},
     };
 
-    const { error } = await client.from('ifa_forms').insert([{ form_id: token, payload }]);
+    const { error } = await client.from('ifa_forms').insert([{
+      form_id: token,
+      updated_at: new Date().toISOString(),
+      payload,
+    }]);
     if (error) {
       console.error(error);
       toast('Could not create intake link: ' + error.message, 'error');
@@ -723,11 +829,18 @@ Rules:
         const token = row.dataset.token;
         const intake = intakes.find((i) => i.form_id === token);
         if (!intake || intake.payload.type !== 'intake_submitted') return;
-        if (!confirm('This will overwrite matching fields in the current form. Continue?')) return;
+        if (!confirm('This will overwrite matching fields in the current form and lock the intake link so the client cannot edit further. Continue?')) return;
         const fd = intake.payload.formData || {};
         Object.keys(fd).forEach((k) => setFieldValue(k, fd[k]));
         try { if (typeof updateProgress === 'function') updateProgress(); } catch (e) { /* ignore */ }
         renderCompliancePanel();
+        // Lock the intake row so the client can no longer re-submit.
+        try {
+          await client.from('ifa_forms').update({
+            payload: { ...intake.payload, locked: true, locked_at: new Date().toISOString() },
+            updated_at: new Date().toISOString(),
+          }).eq('form_id', token);
+        } catch (e) { console.warn('Could not lock intake:', e); }
         toast('Client intake loaded into form', 'success');
         overlay.remove();
       };
@@ -739,9 +852,10 @@ Rules:
   // =========================================================================
   function setReviewToOneYear() {
     const next = new Date(); next.setFullYear(next.getFullYear() + 1);
+    const localIso = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
     const field = $('nextReviewDate');
     if (field) {
-      field.value = next.toISOString().slice(0, 10);
+      field.value = localIso;
       field.dispatchEvent(new Event('change', { bubbles: true }));
       toast('Next review set to ' + next.toLocaleDateString('en-GB'), 'success');
     }
@@ -762,12 +876,24 @@ Rules:
       return { ...DEFAULT_BRAND, ...(JSON.parse(localStorage.getItem(BRAND_STORAGE) || '{}')) };
     } catch (e) { return { ...DEFAULT_BRAND }; }
   }
-  function saveBranding(b) { localStorage.setItem(BRAND_STORAGE, JSON.stringify(b)); }
+  function saveBranding(b) {
+    try {
+      localStorage.setItem(BRAND_STORAGE, JSON.stringify(b));
+      return true;
+    } catch (e) {
+      console.error('Could not save branding to localStorage:', e);
+      toast('Could not save settings — browser storage is full. Try a smaller logo.', 'error');
+      return false;
+    }
+  }
 
   function openSettings() {
     const b = getBranding();
     const apiKey = getApiKey();
     const model = getModel();
+    // Pending logo data URL — set by the upload preview or the Remove button,
+    // committed to localStorage only when the user clicks Save Settings.
+    let pendingLogoDataUrl;
     const body = document.createElement('div');
     body.innerHTML = `
       <div style="display: flex; gap: 6px; border-bottom: 2px solid #E5E5E5; margin-bottom: 18px;">
@@ -866,11 +992,9 @@ Rules:
               firmWebsite: qs('#sf-firmWebsite', modalEl).value,
               primaryColor: qs('#sf-primaryColor', modalEl).value,
               defaultAdviser: qs('#sf-defaultAdviser', modalEl).value,
-              logoDataUrl: getBranding().logoDataUrl, // preserve any newly uploaded logo
+              logoDataUrl: pendingLogoDataUrl !== undefined ? pendingLogoDataUrl : getBranding().logoDataUrl,
             };
-            const preview = qs('#sf-logoPreview img', modalEl);
-            if (preview) updated.logoDataUrl = preview.src;
-            saveBranding(updated);
+            if (!saveBranding(updated)) return false; // keep modal open on quota fail
             saveApiKey(qs('#sf-apiKey-settings', modalEl).value);
             saveModel(qs('#sf-model-settings', modalEl).value);
             applyBranding();
@@ -905,15 +1029,16 @@ Rules:
       if (file.size > 500 * 1024) { toast('Logo must be under 500KB', 'error'); return; }
       const reader = new FileReader();
       reader.onload = () => {
-        qs('#sf-logoPreview', overlay).innerHTML = `<img src="${reader.result}" style="max-height: 60px; max-width: 200px;">`;
+        pendingLogoDataUrl = reader.result;
+        qs('#sf-logoPreview', overlay).innerHTML = `<img src="${reader.result}" style="max-height: 60px; max-width: 200px;"><div style="font-size: 11px; color: #4472C4; margin-top: 6px;">Click Save Settings to keep this logo</div>`;
       };
       reader.readAsDataURL(file);
     };
     const clearBtn = qs('#sf-clearLogo', overlay);
     if (clearBtn) {
       clearBtn.onclick = () => {
-        const b2 = getBranding(); b2.logoDataUrl = ''; saveBranding(b2);
-        qs('#sf-logoPreview', overlay).innerHTML = '<span style="color: #999; font-size: 13px;">No logo uploaded</span>';
+        pendingLogoDataUrl = '';
+        qs('#sf-logoPreview', overlay).innerHTML = '<span style="color: #999; font-size: 13px;">No logo (click Save Settings to confirm)</span>';
         clearBtn.remove();
       };
     }
@@ -941,12 +1066,19 @@ Rules:
         h2, .summary-card h3, .progress-bar h3 { color: ${b.primaryColor} !important; }
       `;
     }
-    // Auto-fill default adviser if empty
+    // Auto-fill default adviser if empty. Dispatch change so the inline
+    // onchange="updateAdviserNumber()" handler populates the FCA ref.
     if (b.defaultAdviser) {
       const adviserSelect = $('adviserName');
       if (adviserSelect && !adviserSelect.value) {
         const opt = Array.from(adviserSelect.options).find((o) => o.value === b.defaultAdviser);
-        if (opt) adviserSelect.value = b.defaultAdviser;
+        if (opt) {
+          adviserSelect.value = b.defaultAdviser;
+          adviserSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        } else {
+          console.warn(`[SF] Default adviser "${b.defaultAdviser}" is not one of the available options. ` +
+            `Add an <option> in index.html or change the setting.`);
+        }
       }
     }
   }
@@ -1053,25 +1185,28 @@ Rules:
       if (html.includes('</body>')) html = html.replace('</body>', footer + '</body>');
       else html = html + footer;
 
-      const w = window.open('', '_blank');
+      const w = openSafeWindow();
+      if (!w) return;
       w.document.write(html);
       w.document.close();
 
       const sb = getSupabase();
       if (sb && formId) {
         try {
-          await sb.from('ifa_forms').upsert({
+          const { error } = await sb.from('ifa_forms').upsert({
             form_id: formId + '_report',
             payload: {
               type: 'suitability_report',
               parentFormId: formId,
-              clientName: `${getFieldValue('title')} ${getFieldValue('firstName')} ${getFieldValue('lastName')}`.trim(),
+              clientName: `${getFieldValue('title')} ${getFieldValue('firstName')} ${getFieldValue('lastName')}`.trim().replace(/\s+/g, ' '),
               generatedDate: new Date().toISOString(),
               branded: true,
-              reportHTML: html,
+              // Don't persist the full HTML — it can exceed Supabase row-size limits
+              // on multi-page reports. The report is also rendered live in the popup.
             },
             updated_at: new Date().toISOString(),
           }, { onConflict: 'form_id' });
+          if (error) console.warn('Branded report save rejected:', error.message);
         } catch (e) { console.error('Could not save branded report', e); }
       }
     };
@@ -1123,53 +1258,47 @@ Rules:
 - If a value is annual, use the annual figure (convert monthly × 12)
 - Return JSON ONLY, no markdown fences`;
 
+  const MAX_DOC_FILES = 5;
+  const MAX_DOC_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_DOC_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+
   async function extractFromDocument(files) {
     const apiKey = getApiKey();
     if (!apiKey) throw new Error('No API key configured. Add one in Settings.');
     const model = getModel();
 
+    if (files.length > MAX_DOC_FILES) {
+      throw new Error(`Too many files: ${files.length}. Maximum is ${MAX_DOC_FILES}.`);
+    }
+    for (const file of files) {
+      if (file.size > MAX_DOC_BYTES) {
+        throw new Error(`${file.name} is ${(file.size / 1024 / 1024).toFixed(1)}MB — maximum is 5MB per file.`);
+      }
+      if (!file.type || !ALLOWED_DOC_TYPES.includes(file.type)) {
+        throw new Error(`${file.name}: unsupported type "${file.type || 'unknown'}". Use PNG, JPEG, GIF, or WebP.`);
+      }
+    }
+
     const images = [];
     for (const file of files) {
       const dataUrl = await fileToDataUrl(file);
       const base64 = dataUrl.split(',')[1];
-      const mediaType = file.type || 'image/jpeg';
-      if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(mediaType)) {
-        throw new Error(`Unsupported file type: ${mediaType}. Use PNG, JPEG, GIF, or WebP.`);
-      }
       images.push({
         type: 'image',
-        source: { type: 'base64', media_type: mediaType, data: base64 },
+        source: { type: 'base64', media_type: file.type, data: base64 },
       });
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 4096,
-        system: [{ type: 'text', text: EXTRACTION_PROMPT, cache_control: { type: 'ephemeral' } }],
-        messages: [{
-          role: 'user',
-          content: [...images, { type: 'text', text: 'Extract the financial data from these documents.' }],
-        }],
-      }),
+    const text = await postToAnthropic({
+      model,
+      max_tokens: 4096,
+      system: [{ type: 'text', text: EXTRACTION_PROMPT, cache_control: { type: 'ephemeral' } }],
+      messages: [{
+        role: 'user',
+        content: [...images, { type: 'text', text: 'Extract the financial data from these documents.' }],
+      }],
     });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Claude API error (${response.status}): ${errText}`);
-    }
-    const data = await response.json();
-    const text = data.content?.[0]?.text || '';
-    const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-    try { return JSON.parse(cleaned); }
-    catch (e) { throw new Error('Could not parse extracted data. Raw: ' + text.slice(0, 200)); }
+    return parseAIJson(text);
   }
 
   function fileToDataUrl(file) {
@@ -1387,28 +1516,12 @@ Rules:
 - Output as a single piece of letter text — NO markdown, NO subject line, NO headings. Just the letter body itself, starting with "Dear FirstName," and ending with the adviser's name.`;
 
   async function callClaudeText(prompt, system) {
-    const apiKey = getApiKey();
-    if (!apiKey) throw new Error('No API key configured. Add one in Settings.');
     const model = getModel();
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model, max_tokens: 2048,
-        system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    return postToAnthropic({
+      model, max_tokens: 2048,
+      system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+      messages: [{ role: 'user', content: prompt }],
     });
-    if (!response.ok) {
-      throw new Error(`Claude API error (${response.status}): ${await response.text()}`);
-    }
-    const data = await response.json();
-    return data.content?.[0]?.text || '';
   }
 
   async function openClientLetter() {
@@ -1488,7 +1601,10 @@ Rules:
 
   function openLetterhead(text, b, ctx) {
     const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-    const clientAddress = [getFieldValue('addressLine1'), getFieldValue('addressLine2'), getFieldValue('city'), getFieldValue('postcode')].filter(Boolean).join('<br>');
+    const clientAddress = ['addressLine1', 'addressLine2', 'city', 'postcode']
+      .map((k) => escapeHtml(getFieldValue(k)))
+      .filter(Boolean)
+      .join('<br>');
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Client Letter</title>
 <style>
@@ -1502,15 +1618,25 @@ Rules:
 ${buildPdfActionBar()}
 ${buildBrandedHeader(b)}
 <div class="sf-letter-meta">
-  <div class="sf-date">${today}</div>
-  <div style="margin-top: 30px;">${clientAddress || ''}</div>
+  <div class="sf-date">${escapeHtml(today)}</div>
+  <div style="margin-top: 30px;">${clientAddress}</div>
 </div>
 <div class="sf-letter-body">${escapeHtml(text)}</div>
 ${buildBrandedFooter(b)}
 </body></html>`;
-    const w = window.open('', '_blank');
+    const w = openSafeWindow();
+    if (!w) return;
     w.document.write(html);
     w.document.close();
+  }
+
+  function openSafeWindow() {
+    const w = window.open('', '_blank');
+    if (!w) {
+      toast('Popup blocked — allow popups for this site to view reports', 'error');
+      return null;
+    }
+    return w;
   }
 
   // =========================================================================
@@ -1535,8 +1661,9 @@ ${buildBrandedFooter(b)}
     const snap = snapshotForm();
     const auditId = `${parentId}_audit_${Date.now()}`;
     try {
-      await sb.from('ifa_forms').insert([{
+      const { error } = await sb.from('ifa_forms').insert([{
         form_id: auditId,
+        updated_at: new Date().toISOString(),
         payload: {
           type: 'audit_snapshot',
           parentFormId: parentId,
@@ -1544,19 +1671,67 @@ ${buildBrandedFooter(b)}
           ...snap,
         },
       }]);
+      if (error) console.warn('Audit snapshot rejected by Supabase:', error.message);
     } catch (e) {
       console.warn('Audit snapshot failed', e);
     }
   }
 
   function hookAuditTrail() {
-    if (typeof window.saveForm !== 'function') return;
+    if (typeof window.saveForm !== 'function' || window.saveForm.__sfWrapped) return;
     const original = window.saveForm;
-    window.saveForm = async function audited(...args) {
-      const result = await original.apply(this, args);
-      saveAuditSnapshot('manual_save');
-      return result;
-    };
+
+    async function audited(...args) {
+      const form = $('suitabilityForm');
+      // Mirror the original's pre-check so we don't snapshot when it returns
+      // early on validation failure.
+      if (form && !form.checkValidity()) {
+        return original.apply(this, args);
+      }
+      // Resolve Supabase at call time (the global is created lazily by
+      // testDatabaseConnection after page load).
+      const sb = getSupabase();
+      if (!sb || !sb.from) {
+        // No Supabase — original is the local-storage-only path; don't snapshot.
+        return original.apply(this, args);
+      }
+      // Detect real persistence by transparently observing insert/upsert results
+      // while the original runs.
+      let persisted = false;
+      const realFrom = sb.from.bind(sb);
+      sb.from = (table) => {
+        const builder = realFrom(table);
+        if (table === 'ifa_forms') {
+          ['insert', 'upsert', 'update'].forEach((m) => {
+            if (typeof builder[m] === 'function') {
+              const realM = builder[m].bind(builder);
+              builder[m] = (...mArgs) => {
+                const p = realM(...mArgs);
+                if (p && typeof p.then === 'function') {
+                  p.then((r) => { if (r && !r.error) persisted = true; }).catch(() => {});
+                }
+                return p;
+              };
+            }
+          });
+        }
+        return builder;
+      };
+      try {
+        const result = await original.apply(this, args);
+        // Give pending promise resolutions a tick to flip `persisted` if the
+        // upsert chain didn't complete synchronously inside `await original`.
+        await new Promise((r) => setTimeout(r, 0));
+        if (persisted) {
+          await saveAuditSnapshot('manual_save');
+        }
+        return result;
+      } finally {
+        sb.from = realFrom;
+      }
+    }
+    audited.__sfWrapped = true;
+    window.saveForm = audited;
   }
 
   async function openAuditHistory() {
@@ -1565,10 +1740,13 @@ ${buildBrandedFooter(b)}
     const parentId = ($('formUniqueId') || {}).textContent;
     if (!parentId) { toast('No form ID yet — save the form first', 'warning'); return; }
 
+    // Use payload->>parentFormId for exact match. Falls back to startsWith on form_id
+    // (with escaped wildcards) in case the column-path filter isn't supported.
     const { data, error } = await sb
       .from('ifa_forms')
       .select('form_id, payload, created_at')
-      .like('form_id', `${parentId}_audit_%`)
+      .eq('payload->>type', 'audit_snapshot')
+      .eq('payload->>parentFormId', parentId)
       .order('form_id', { ascending: false })
       .limit(100);
 
@@ -1709,7 +1887,8 @@ ${buildBrandedHeader(b)}
 </table>
 ${buildBrandedFooter(b)}
 </body></html>`;
-    const w = window.open('', '_blank');
+    const w = openSafeWindow();
+    if (!w) return;
     w.document.write(html);
     w.document.close();
   }
@@ -1802,6 +1981,47 @@ ${buildBrandedFooter(b)}
     document.body.appendChild(bar);
   }
 
+  function patchUpdateProgressForReviewFields() {
+    // The new nextReviewDate / reviewNotes fields have name attributes so they
+    // ride along with the FormData save. But existing forms have none of them
+    // populated, which would knock the completion % down by 2 fields. Wrap the
+    // legacy updateProgress so the new fields don't count toward totalFields
+    // unless they're filled.
+    if (typeof window.updateProgress !== 'function' || window.updateProgress.__sfWrapped) return;
+    const original = window.updateProgress;
+    const wrapped = function (...args) {
+      const result = original.apply(this, args);
+      // After the legacy logic runs, find the progress fill text "X% (a of b fields)"
+      // header and adjust b downward when our optional fields are empty.
+      try {
+        const next = $('nextReviewDate');
+        const notes = $('reviewNotes');
+        let opt = 0;
+        if (next && !next.value) opt++;
+        if (notes && !notes.value) opt++;
+        if (opt === 0) return result;
+        const header = document.querySelector('.progress-bar h3');
+        if (header) {
+          const m = header.textContent.match(/^(.*\()(\d+) of (\d+) fields\)$/);
+          if (m) {
+            const filled = parseInt(m[2], 10);
+            const total = parseInt(m[3], 10) - opt;
+            const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+            header.textContent = `${m[1]}${filled} of ${total} fields)`;
+            const fill = $('progressFill');
+            if (fill) {
+              fill.style.width = pct + '%';
+              fill.textContent = pct + '%';
+            }
+          }
+        }
+      } catch (e) { /* don't break the legacy flow */ }
+      return result;
+    };
+    wrapped.__sfWrapped = true;
+    window.updateProgress = wrapped;
+  }
+
   function injectReviewDateField() {
     // Add "Next Review Date" field into Section 12 (Quality Assurance)
     const section = $('section12');
@@ -1832,7 +2052,8 @@ ${buildBrandedFooter(b)}
 
   function hookFormChangesToCompliance() {
     const form = $('suitabilityForm');
-    if (!form) return;
+    if (!form || form.__sfComplianceHooked) return;
+    form.__sfComplianceHooked = true;
     let timer;
     const recompute = () => {
       clearTimeout(timer);
@@ -1840,12 +2061,35 @@ ${buildBrandedFooter(b)}
     };
     form.addEventListener('input', recompute);
     form.addEventListener('change', recompute);
+
+    // The legacy loadFormById and loadAutoSave functions in index.html set field
+    // values via direct DOM mutation without firing 'change'. Wrap them so we
+    // recompute the compliance panel after they finish — whether or not they
+    // throw, since a partial load may still have populated visible fields.
+    ['loadFormById', 'loadAutoSave'].forEach((fnName) => {
+      const original = window[fnName];
+      if (typeof original !== 'function' || original.__sfWrapped) return;
+      const wrapped = async function (...args) {
+        try {
+          return await original.apply(this, args);
+        } finally {
+          recompute();
+        }
+      };
+      wrapped.__sfWrapped = true;
+      window[fnName] = wrapped;
+    });
   }
 
   function init() {
+    // Window-scoped guard so a re-injected copy of this script (cache-bust,
+    // hot reload, accidental double include) doesn't stack wrappers/listeners.
+    if (window.__sfInitialised) return;
+    window.__sfInitialised = true;
     injectStyles();
     injectReviewDateField();
     injectFeatureBar();
+    patchUpdateProgressForReviewFields();
     hookFormChangesToCompliance();
     renderCompliancePanel();
     applyBranding();

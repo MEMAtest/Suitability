@@ -371,25 +371,57 @@
 
       const formData = collectFormData();
 
-      // Fetch current payload, merge
-      const { data: row } = await client
-        .from('ifa_forms').select('payload').eq('form_id', token).single();
-      const payload = row?.payload || {};
-      payload.type = 'intake_submitted';
-      payload.formData = formData;
-      payload.submitted_at = new Date().toISOString();
+      // Re-fetch and validate server-side state before submitting.
+      const { data: row, error: fetchErr } = await client
+        .from('ifa_forms').select('payload, updated_at').eq('form_id', token).single();
 
-      const { error } = await client
-        .from('ifa_forms')
-        .update({ payload })
-        .eq('form_id', token);
-
-      if (error) {
+      function showSubmitError(msg) {
         const status = $('statusMessage');
         status.className = 'status error';
-        status.textContent = '⚠️ Could not submit: ' + error.message + '. Please try again or contact your adviser.';
+        status.textContent = '⚠️ ' + msg;
         btn.disabled = false;
         btn.textContent = 'Submit to Adviser';
+      }
+
+      if (fetchErr || !row || !row.payload) {
+        showSubmitError('Could not load your intake. Please contact your adviser.');
+        return;
+      }
+      const current = row.payload;
+
+      // Server-side expiry check
+      if (current.expires_at && new Date(current.expires_at) < new Date()) {
+        showSubmitError('This intake link has expired. Please contact your adviser for a new link.');
+        return;
+      }
+      // Server-side immutability: if the adviser has already imported this intake,
+      // don't accept further edits.
+      if (current.locked) {
+        showSubmitError('This intake has already been processed by your adviser and is now locked.');
+        return;
+      }
+      // Optimistic-lock: only update if updated_at matches what we just fetched.
+      const expectedUpdatedAt = row.updated_at;
+      const payload = {
+        ...current,
+        type: 'intake_submitted',
+        formData,
+        submitted_at: new Date().toISOString(),
+      };
+
+      const { data: updateData, error } = await client
+        .from('ifa_forms')
+        .update({ payload, updated_at: new Date().toISOString() })
+        .eq('form_id', token)
+        .eq('updated_at', expectedUpdatedAt)
+        .select();
+
+      if (error) {
+        showSubmitError('Could not submit: ' + error.message + '. Please try again.');
+        return;
+      }
+      if (!updateData || updateData.length === 0) {
+        showSubmitError('Your intake was updated elsewhere (perhaps in another tab). Please reload this page and try again.');
         return;
       }
 

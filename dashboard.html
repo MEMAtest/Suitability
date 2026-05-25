@@ -195,8 +195,16 @@
         // ** FIX: Correctly initialize the Supabase client with a new variable name **
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+            })[c]);
+        }
+
         // Apply firm branding from localStorage (set in the main form's Settings)
         function applyDashboardBranding() {
+            // Idempotent: only ever apply once per page load.
+            if (document.body.dataset.sfBranded === '1') return;
             try {
                 const b = JSON.parse(localStorage.getItem('sf_firm_branding') || '{}');
                 if (b.firmName) {
@@ -205,6 +213,7 @@
                 }
                 if (b.primaryColor && b.primaryColor !== '#003366') {
                     const style = document.createElement('style');
+                    style.id = 'sf-brand-style';
                     style.textContent = `
                         header { background-color: ${b.primaryColor} !important; }
                         h2 { color: ${b.primaryColor} !important; }
@@ -215,17 +224,24 @@
                 }
                 if (b.logoDataUrl) {
                     const headerDiv = document.querySelector('header .container');
-                    const wrap = document.createElement('div');
-                    wrap.style.cssText = 'display: flex; align-items: center; gap: 16px;';
-                    const img = document.createElement('img');
-                    img.src = b.logoDataUrl;
-                    img.style.cssText = 'max-height: 40px; max-width: 160px; background: white; padding: 4px; border-radius: 4px;';
-                    const h1 = headerDiv.querySelector('h1');
-                    wrap.appendChild(img);
-                    wrap.appendChild(h1);
-                    headerDiv.insertBefore(wrap, headerDiv.firstChild);
+                    const h1 = headerDiv && headerDiv.querySelector('h1');
+                    if (headerDiv && h1) {
+                        const wrap = document.createElement('div');
+                        wrap.id = 'sf-brand-wrap';
+                        wrap.style.cssText = 'display: flex; align-items: center; gap: 16px;';
+                        const img = document.createElement('img');
+                        img.src = b.logoDataUrl;
+                        img.style.cssText = 'max-height: 40px; max-width: 160px; background: white; padding: 4px; border-radius: 4px;';
+                        // Detach the h1 from its current parent, build wrap with logo + h1,
+                        // and insert wrap at the start of headerDiv.
+                        h1.remove();
+                        wrap.appendChild(img);
+                        wrap.appendChild(h1);
+                        headerDiv.insertBefore(wrap, headerDiv.firstChild);
+                    }
                 }
-            } catch (e) { /* ignore */ }
+                document.body.dataset.sfBranded = '1';
+            } catch (e) { console.warn('Branding apply failed:', e); }
         }
 
         // Lightweight compliance estimator (mirrors suitability-features.js)
@@ -293,7 +309,8 @@
                 return c >= 60 && c < 85;
             }).length;
             const ready = forms.filter((f) => formCompliance(f.payload?.formData) >= 85).length;
-            const aiSaved = allRows.filter((r) => r.payload?.type === 'suitability_report' && r.payload?.branded).length;
+            // Count all generated reports (legacy + new branded ones).
+            const aiSaved = allRows.filter((r) => r.payload?.type === 'suitability_report').length;
             const hoursSaved = aiSaved * 3;
 
             const card = (label, value, color, sub) => `
@@ -323,27 +340,25 @@
         return;
     }
 
-    forms.forEach(form => {
+    const rows = forms.map((form) => {
         const formData = form.payload.formData;
-        if (!formData) return;
+        if (!formData) return '';
 
         const clientName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'N/A';
         const savedDate = new Date(form.updated_at).toLocaleDateString('en-GB');
-        const completion = formData.completionPercentage || 'N/A';
+        const completion = formCompliance(formData) ? formCompliance(formData) + '%' : 'N/A';
 
-        // ** THIS IS THE KEY CHANGE **
-        // The client name is now a link to view-form.html, passing the form_id in the URL
-        const row = `
+        return `
             <tr>
-                <td><a href="/view-form.html?id=${form.form_id}" target="_blank" title="View Details">${clientName}</a></td>
-                <td>${savedDate}</td>
-                <td>${formData.riskCategory || 'N/A'}</td>
-                <td>${formData.adviceType || 'N/A'}</td>
-                <td>${completion}</td>
+                <td><a href="/view-form.html?id=${encodeURIComponent(form.form_id)}" target="_blank" title="View Details">${escapeHtml(clientName)}</a></td>
+                <td>${escapeHtml(savedDate)}</td>
+                <td>${escapeHtml(formData.riskCategory || 'N/A')}</td>
+                <td>${escapeHtml(formData.adviceType || 'N/A')}</td>
+                <td>${escapeHtml(completion)}</td>
             </tr>
         `;
-        tableBody.innerHTML += row;
-    });
+    }).join('');
+    tableBody.innerHTML = rows;
 
     document.getElementById('loadingSubmissions').style.display = 'none';
     document.getElementById('submissionsTable').style.display = 'table';
@@ -380,8 +395,8 @@
                 if (c > 0) { totalCompliance += c; complianceEntries++; }
 
                 if (formData.nextReviewDate) {
-                    const due = new Date(formData.nextReviewDate);
-                    if (!isNaN(due) && due < today) overdue++;
+                    const due = parseLocalDate(formData.nextReviewDate);
+                    if (due && !isNaN(due) && due < today) overdue++;
                 }
             });
 
@@ -402,6 +417,15 @@ function renderCharts(forms) {
     renderUpcomingReviews(forms);
 }
 
+function parseLocalDate(yyyymmdd) {
+    // new Date('YYYY-MM-DD') parses as UTC midnight which causes off-by-one in non-UTC zones.
+    // Build a local-midnight Date instead.
+    if (!yyyymmdd || typeof yyyymmdd !== 'string') return null;
+    const m = yyyymmdd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return null;
+    return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+}
+
 function renderUpcomingReviews(forms) {
     const container = document.getElementById('reviewsBody');
     if (!container) return;
@@ -411,8 +435,8 @@ function renderUpcomingReviews(forms) {
         .map((form) => {
             const fd = form.payload?.formData;
             if (!fd || !fd.nextReviewDate) return null;
-            const due = new Date(fd.nextReviewDate);
-            if (isNaN(due)) return null;
+            const due = parseLocalDate(fd.nextReviewDate);
+            if (!due || isNaN(due)) return null;
             const days = Math.floor((due - today) / (1000 * 60 * 60 * 24));
             return {
                 clientName: `${fd.firstName || ''} ${fd.lastName || ''}`.trim() || '(unnamed)',
@@ -447,16 +471,16 @@ function renderUpcomingReviews(forms) {
                     ? `${Math.abs(r.daysUntil)} day${Math.abs(r.daysUntil) === 1 ? '' : 's'} overdue`
                     : `in ${r.daysUntil} day${r.daysUntil === 1 ? '' : 's'}`;
                 return `
-                    <a href="/view-form.html?id=${r.formId}" target="_blank" style="
+                    <a href="/view-form.html?id=${encodeURIComponent(r.formId)}" target="_blank" style="
                         display: block; text-decoration: none; color: inherit;
                         background: ${c.bg}; border-left: 4px solid ${c.border};
                         padding: 14px; border-radius: 6px;
                         transition: transform 0.15s;
                     " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                        <div style="font-size: 10px; font-weight: 700; color: ${c.text}; letter-spacing: 0.5px; margin-bottom: 4px;">${c.label}</div>
-                        <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 2px;">${r.clientName}</div>
-                        <div style="font-size: 13px; color: ${c.text};"><strong>${dateStr}</strong> · ${subtitle}</div>
-                        <div style="font-size: 11px; color: var(--gray-medium); margin-top: 4px;">Adviser: ${r.adviser}</div>
+                        <div style="font-size: 10px; font-weight: 700; color: ${c.text}; letter-spacing: 0.5px; margin-bottom: 4px;">${escapeHtml(c.label)}</div>
+                        <div style="font-weight: 600; color: var(--gray-dark); margin-bottom: 2px;">${escapeHtml(r.clientName)}</div>
+                        <div style="font-size: 13px; color: ${c.text};"><strong>${escapeHtml(dateStr)}</strong> · ${escapeHtml(subtitle)}</div>
+                        <div style="font-size: 11px; color: var(--gray-medium); margin-top: 4px;">Adviser: ${escapeHtml(r.adviser)}</div>
                     </a>
                 `;
             }).join('')}
