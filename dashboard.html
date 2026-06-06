@@ -202,6 +202,12 @@
         }
 
         // Apply firm branding from localStorage (set in the main form's Settings)
+        function safeColor(c, fallback) {
+            return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(c || '')) ? c : (fallback || '#003366');
+        }
+        function safeLogoUrl(url) {
+            return /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);/.test(String(url || '')) ? url : '';
+        }
         function applyDashboardBranding() {
             // Idempotent: only ever apply once per page load.
             if (document.body.dataset.sfBranded === '1') return;
@@ -211,18 +217,20 @@
                     document.title = b.firmName + ' — Dashboard';
                     document.querySelector('header h1').textContent = b.firmName + ' · Compliance Dashboard';
                 }
-                if (b.primaryColor && b.primaryColor !== '#003366') {
+                const color = safeColor(b.primaryColor);
+                if (color !== '#003366') {
                     const style = document.createElement('style');
                     style.id = 'sf-brand-style';
                     style.textContent = `
-                        header { background-color: ${b.primaryColor} !important; }
-                        h2 { color: ${b.primaryColor} !important; }
-                        .summary-card h3 { color: ${b.primaryColor} !important; }
-                        th { color: ${b.primaryColor} !important; }
+                        header { background-color: ${color} !important; }
+                        h2 { color: ${color} !important; }
+                        .summary-card h3 { color: ${color} !important; }
+                        th { color: ${color} !important; }
                     `;
                     document.head.appendChild(style);
                 }
-                if (b.logoDataUrl) {
+                const logoUrl = safeLogoUrl(b.logoDataUrl);
+                if (logoUrl) {
                     const headerDiv = document.querySelector('header .container');
                     const h1 = headerDiv && headerDiv.querySelector('h1');
                     if (headerDiv && h1) {
@@ -230,7 +238,7 @@
                         wrap.id = 'sf-brand-wrap';
                         wrap.style.cssText = 'display: flex; align-items: center; gap: 16px;';
                         const img = document.createElement('img');
-                        img.src = b.logoDataUrl;
+                        img.src = logoUrl;
                         img.style.cssText = 'max-height: 40px; max-width: 160px; background: white; padding: 4px; border-radius: 4px;';
                         // Detach the h1 from its current parent, build wrap with logo + h1,
                         // and insert wrap at the start of headerDiv.

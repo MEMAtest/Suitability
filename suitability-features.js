@@ -796,15 +796,15 @@ Rules:
           const name = `${fd.firstName || ''} ${fd.lastName || ''}`.trim() || '(no name yet)';
           const submitted = i.payload.type === 'intake_submitted';
           return `
-            <div class="sf-intake-row" data-token="${i.form_id}" style="
+            <div class="sf-intake-row" data-token="${escapeHtml(i.form_id)}" style="
               padding: 14px; border: 1px solid #E5E5E5; border-radius: 6px;
               margin-bottom: 8px; cursor: ${submitted ? 'pointer' : 'default'};
               opacity: ${submitted ? 1 : 0.6};
               display: flex; justify-content: space-between; align-items: center;
             ">
               <div>
-                <div style="font-weight: 600;">${name}</div>
-                <div style="font-size: 12px; color: #666;">Token ${i.form_id.slice(0, 12)}… · ${new Date(i.updated_at).toLocaleString('en-GB')}</div>
+                <div style="font-weight: 600;">${escapeHtml(name)}</div>
+                <div style="font-size: 12px; color: #666;">Token ${escapeHtml(String(i.form_id).slice(0, 12))}… · ${escapeHtml(new Date(i.updated_at).toLocaleString('en-GB'))}</div>
               </div>
               <span style="
                 padding: 4px 10px; border-radius: 12px; font-size: 12px;
@@ -933,7 +933,7 @@ Rules:
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
           <div>
             <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Brand Colour</label>
-            <input id="sf-primaryColor" type="color" value="${b.primaryColor}" style="width: 100%; height: 42px; padding: 2px; border: 1px solid #E5E5E5; border-radius: 4px;">
+            <input id="sf-primaryColor" type="color" value="${safeColor(b.primaryColor)}" style="width: 100%; height: 42px; padding: 2px; border: 1px solid #E5E5E5; border-radius: 4px;">
           </div>
           <div>
             <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Default Adviser</label>
@@ -944,7 +944,7 @@ Rules:
           <label style="display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px;">Logo</label>
           <input type="file" id="sf-logoFile" accept="image/png,image/jpeg,image/svg+xml" style="margin-bottom: 8px;">
           <div id="sf-logoPreview" style="padding: 10px; background: #f5f5f5; border-radius: 4px; min-height: 60px; display: flex; align-items: center; justify-content: center;">
-            ${b.logoDataUrl ? `<img src="${b.logoDataUrl}" style="max-height: 60px; max-width: 200px;">` : '<span style="color: #999; font-size: 13px;">No logo uploaded</span>'}
+            ${safeLogoUrl(b.logoDataUrl) ? `<img src="${escapeHtml(safeLogoUrl(b.logoDataUrl))}" style="max-height: 60px; max-width: 200px;">` : '<span style="color: #999; font-size: 13px;">No logo uploaded</span>'}
           </div>
           ${b.logoDataUrl ? '<button type="button" id="sf-clearLogo" style="margin-top: 6px; padding: 6px 12px; background: none; border: 1px solid #DC3545; color: #DC3545; border-radius: 4px; cursor: pointer; font-size: 12px;">Remove logo</button>' : ''}
         </div>
@@ -1050,10 +1050,21 @@ Rules:
     })[c]);
   }
 
+  // Branding values come from localStorage (the colour picker yields #rrggbb, but
+  // localStorage can be tampered with). These validators keep a poisoned value from
+  // breaking out of a <style> block (CSS injection) or an <img src> attribute.
+  function safeColor(c, fallback) {
+    return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(c || '')) ? c : (fallback || '#003366');
+  }
+  function safeLogoUrl(url) {
+    return /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);/.test(String(url || '')) ? url : '';
+  }
+
   function applyBranding() {
     const b = getBranding();
     // Recolour primary header if user picked a different brand colour
-    if (b.primaryColor && b.primaryColor !== '#003366') {
+    const color = safeColor(b.primaryColor);
+    if (color !== '#003366') {
       let styleEl = $('sf-brand-style');
       if (!styleEl) {
         styleEl = document.createElement('style');
@@ -1061,9 +1072,9 @@ Rules:
         document.head.appendChild(styleEl);
       }
       styleEl.textContent = `
-        header { background-color: ${b.primaryColor} !important; }
-        .sf-feature-bar-header { background: ${b.primaryColor} !important; }
-        h2, .summary-card h3, .progress-bar h3 { color: ${b.primaryColor} !important; }
+        header { background-color: ${color} !important; }
+        .sf-feature-bar-header { background: ${color} !important; }
+        h2, .summary-card h3, .progress-bar h3 { color: ${color} !important; }
       `;
     }
     // Auto-fill default adviser if empty. Dispatch change so the inline
@@ -1095,7 +1106,7 @@ Rules:
         }
         .sf-report-header {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 16px 24px; background: ${b.primaryColor || '#003366'};
+          padding: 16px 24px; background: ${safeColor(b.primaryColor)};
           color: white; margin-bottom: 24px;
         }
         .sf-report-header img { max-height: 50px; max-width: 180px; background: white; padding: 4px; border-radius: 4px; }
@@ -1113,7 +1124,7 @@ Rules:
           padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;
           font-weight: 600; font-size: 13px;
         }
-        .sf-pdf-bar .sf-print { background: ${b.primaryColor || '#003366'}; color: white; }
+        .sf-pdf-bar .sf-print { background: ${safeColor(b.primaryColor)}; color: white; }
         .sf-pdf-bar .sf-close-btn { background: #E5E5E5; color: #333; }
         body { padding-top: 56px; }
       </style>
@@ -1121,7 +1132,8 @@ Rules:
   }
 
   function buildBrandedHeader(b) {
-    const logo = b.logoDataUrl ? `<img src="${b.logoDataUrl}" alt="Logo">` : '';
+    const safeLogo = safeLogoUrl(b.logoDataUrl);
+    const logo = safeLogo ? `<img src="${escapeHtml(safeLogo)}" alt="Logo">` : '';
     const meta = [
       b.firmName ? `<strong>${escapeHtml(b.firmName)}</strong>` : '',
       b.firmAddress ? escapeHtml(b.firmAddress) : '',
@@ -1158,6 +1170,7 @@ Rules:
 
   function wrapReportWithBranding() {
     if (typeof window.generateSuitabilityReport !== 'function') return;
+    if (window.generateSuitabilityReport.__sfWrapped) return; // defense-in-depth idempotency
     const original = window.generateSuitabilityReport;
     window.generateSuitabilityReport = async function brandedGenerate() {
       const form = $('suitabilityForm');
@@ -1210,6 +1223,7 @@ Rules:
         } catch (e) { console.error('Could not save branded report', e); }
       }
     };
+    window.generateSuitabilityReport.__sfWrapped = true;
   }
 
   // =========================================================================
@@ -1696,8 +1710,21 @@ ${buildBrandedFooter(b)}
         return original.apply(this, args);
       }
       // Detect real persistence by transparently observing insert/upsert results
-      // while the original runs.
+      // while the original runs. Scope detection to the THIS form's own row id so a
+      // concurrent autosave/report write (different form_id) can't flip the flag.
+      const parentId = ($('formUniqueId') || {}).textContent || '';
       let persisted = false;
+      const recordTargetsParent = (mArgs) => {
+        // The saved record is the first arg (object or array of objects). Match its
+        // form_id to the current form. If we can't tell, fall back to true so we don't
+        // miss a legitimate save.
+        try {
+          const rec = mArgs && mArgs[0];
+          const records = Array.isArray(rec) ? rec : [rec];
+          if (!parentId) return true;
+          return records.some((r) => r && (r.form_id === parentId || r.form_id === undefined));
+        } catch { return true; }
+      };
       const realFrom = sb.from.bind(sb);
       sb.from = (table) => {
         const builder = realFrom(table);
@@ -1707,7 +1734,8 @@ ${buildBrandedFooter(b)}
               const realM = builder[m].bind(builder);
               builder[m] = (...mArgs) => {
                 const p = realM(...mArgs);
-                if (p && typeof p.then === 'function') {
+                const targetsParent = recordTargetsParent(mArgs);
+                if (p && typeof p.then === 'function' && targetsParent) {
                   p.then((r) => { if (r && !r.error) persisted = true; }).catch(() => {});
                 }
                 return p;
@@ -1740,8 +1768,8 @@ ${buildBrandedFooter(b)}
     const parentId = ($('formUniqueId') || {}).textContent;
     if (!parentId) { toast('No form ID yet — save the form first', 'warning'); return; }
 
-    // Use payload->>parentFormId for exact match. Falls back to startsWith on form_id
-    // (with escaped wildcards) in case the column-path filter isn't supported.
+    // Exact match on the JSON payload fields — avoids LIKE wildcard pitfalls with
+    // underscores in form ids.
     const { data, error } = await sb
       .from('ifa_forms')
       .select('form_id, payload, created_at')
@@ -1868,7 +1896,7 @@ ${buildBrandedFooter(b)}
 <style>
   body { font-family: -apple-system, sans-serif; padding: 20px; color: #333; }
   ${buildBrandedReportHead(b).replace(/<\/?style>/g, '')}
-  h1 { color: ${b.primaryColor || '#003366'}; }
+  h1 { color: ${safeColor(b.primaryColor)}; }
   table { width: 100%; border-collapse: collapse; margin-top: 16px; }
   th { background: #f5f5f5; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; font-size: 13px; }
   td { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
